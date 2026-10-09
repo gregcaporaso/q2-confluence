@@ -57,3 +57,24 @@ def gtdb_tree_collapse_genus(use):
         use.UsageInputs(tree=tree, taxonomy=taxonomy, level=6),
         use.UsageOutputNames(collapsed_tree='genus-tree'),
     )
+
+
+def relative_table_factory():
+    import biom
+    import numpy as np
+    table = biom.Table(np.array([[0.6, 0.1], [0.4, 0.9]]),
+                       ['d__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;'
+                        'f__Lachnospiraceae;g__Blautia',
+                        'd__Bacteria;p__Bacillota;c__Bacilli;o__Bacillales;'
+                        'f__Bacillaceae;g__Bacillus'],
+                       ['sample-1', 'sample-2'])
+    return Artifact.import_data('FeatureTable[RelativeFrequency]', table)
+
+
+def frequency_one_million(use):
+    table = use.init_artifact('relative-table', relative_table_factory)
+    use.action(
+        use.UsageAction('confluence', 'frequency'),
+        use.UsageInputs(table=table, total=1_000_000),
+        use.UsageOutputNames(table='frequency-table'),
+    )

@@ -8,10 +8,13 @@
 
 from qiime2.plugin import Citations, Int, Plugin, Range
 from q2_types.feature_data import FeatureData, Taxonomy
+from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
 from q2_types.tree import Phylogeny, Rooted
 
 from la_confluence import __version__
-from la_confluence._examples import gtdb_tree_collapse_genus
+from la_confluence._examples import (frequency_one_million,
+                                     gtdb_tree_collapse_genus)
+from la_confluence._table import frequency
 from la_confluence._tree import gtdb_tree_collapse
 
 citations = Citations.load("citations.bib", package="la_confluence")
@@ -62,4 +65,29 @@ plugin.methods.register_function(
         'level. Provisional: expected to move to q2-phylogeny.'),
     deprecated=True,
     examples={'Collapse a GTDB tree to genus': gtdb_tree_collapse_genus},
+)
+
+plugin.methods.register_function(
+    function=frequency,
+    inputs={'table': FeatureTable[RelativeFrequency]},
+    parameters={'total': Int % Range(1, None)},
+    outputs=[('table', FeatureTable[Frequency])],
+    input_descriptions={'table': 'Proportions per sample (each sample sums to 1).'},
+    parameter_descriptions={
+        'total': 'The count every sample is scaled to. A feature below '
+                 '0.5 / total in a sample rounds to zero there, so a total of '
+                 '1000000 keeps every proportion of 5e-7 or more.'},
+    output_descriptions={
+        'table': 'round(proportion * total) per sample; sample totals equal '
+                 'the total up to rounding.'},
+    name='Rescale proportions to counts',
+    description=(
+        'Profiles reported as proportions (sylph, MetaPhlAn, TPM) cannot go '
+        'through actions that need counts, such as rarefaction, q2-boots, or '
+        'the sample classifier. This action multiplies each sample by one '
+        'total and rounds, and says so: unlike sapienns frequency, the total '
+        'is applied to proportions, not percentages. Provisional: expected to '
+        'move to q2-feature-table.'),
+    deprecated=True,
+    examples={'Scale to one million per sample': frequency_one_million},
 )
