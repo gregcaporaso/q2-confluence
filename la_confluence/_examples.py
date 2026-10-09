@@ -119,11 +119,13 @@ def summarize_inputs_two_studies(use):
     amplicon_md = use.init_artifact('amplicon-metadata', amplicon_metadata_factory)
     metagenome_md = use.init_artifact('metagenome-metadata',
                                       metagenome_metadata_factory)
+    tables = use.construct_artifact_collection(
+        'tables', {'amplicon': amplicon, 'metagenome': metagenome})
+    metadata = use.construct_artifact_collection(
+        'metadata', {'amplicon': amplicon_md, 'metagenome': metagenome_md})
     use.action(
         use.UsageAction('confluence', 'summarize_inputs'),
-        use.UsageInputs(tables={'amplicon': amplicon, 'metagenome': metagenome},
-                        metadata={'amplicon': amplicon_md,
-                                  'metagenome': metagenome_md}),
+        use.UsageInputs(tables=tables, metadata=metadata),
         use.UsageOutputNames(visualization='inputs-summary'),
     )
 
@@ -132,10 +134,92 @@ def merge_metadata_union(use):
     amplicon_md = use.init_artifact('amplicon-metadata', amplicon_metadata_factory)
     metagenome_md = use.init_artifact('metagenome-metadata',
                                       metagenome_metadata_factory)
+    metadata = use.construct_artifact_collection(
+        'metadata', {'amplicon': amplicon_md, 'metagenome': metagenome_md})
     use.action(
         use.UsageAction('confluence', 'merge_metadata'),
-        use.UsageInputs(metadata={'amplicon': amplicon_md,
-                                  'metagenome': metagenome_md},
-                        how='union'),
+        use.UsageInputs(metadata=metadata, how='union'),
         use.UsageOutputNames(merged_metadata='merged-metadata'),
+    )
+
+
+_ASV_TAXONOMY = {
+    'asv-1': 'd__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;'
+             'f__Lachnospiraceae;g__Blautia;s__',
+    'asv-2': 'd__Bacteria;p__Bacillota;c__Bacilli;o__Bacillales;'
+             'f__Bacillaceae;g__Bacillus;s__Bacillus subtilis',
+    'asv-3': 'd__Bacteria;p__Bacillota;c__Bacilli;o__Bacillales;'
+             'f__Bacillaceae;g__;s__',
+}
+
+_GENOME_TAXONOMY = {
+    'GCF_1': _TAXONOMY['RS_GCF_1'],
+    'GCF_2': _TAXONOMY['RS_GCF_4'],
+}
+
+
+def _taxonomy_factory(mapping):
+    df = pd.DataFrame({'Taxon': pd.Series(mapping)})
+    df.index.name = 'Feature ID'
+    return Artifact.import_data('FeatureData[Taxonomy]', df)
+
+
+def amplicon_taxonomy_factory():
+    return _taxonomy_factory(_ASV_TAXONOMY)
+
+
+def metagenome_taxonomy_factory():
+    return _taxonomy_factory(_GENOME_TAXONOMY)
+
+
+def amplicon_table_three_asvs_factory():
+    import biom
+    import numpy as np
+    table = biom.Table(np.array([[12, 0, 7], [3, 9, 1], [1, 2, 0]]),
+                       ['asv-1', 'asv-2', 'asv-3'],
+                       ['sample-1', 'sample-2', 'sample-3'])
+    return Artifact.import_data('FeatureTable[Frequency]', table)
+
+
+def metagenome_counts_factory():
+    import biom
+    import numpy as np
+    table = biom.Table(np.array([[600000, 100000], [400000, 900000]]),
+                       ['GCF_1', 'GCF_2'], ['sample-2', 'sample-3'])
+    return Artifact.import_data('FeatureTable[Frequency]', table)
+
+
+def integrate_at_genus(use):
+    tree = use.init_artifact('reference-tree', reference_tree_factory)
+    taxonomy = use.init_artifact('reference-taxonomy',
+                                 reference_taxonomy_factory)
+    genus_tree, = use.action(
+        use.UsageAction('confluence', 'gtdb_tree_collapse'),
+        use.UsageInputs(tree=tree, taxonomy=taxonomy, level=6),
+        use.UsageOutputNames(collapsed_tree='genus-tree'),
+    )
+    amplicon = use.init_artifact('amplicon-table',
+                                 amplicon_table_three_asvs_factory)
+    amplicon_tax = use.init_artifact('amplicon-taxonomy',
+                                     amplicon_taxonomy_factory)
+    metagenome = use.init_artifact('metagenome-table', metagenome_counts_factory)
+    metagenome_tax = use.init_artifact('metagenome-taxonomy',
+                                       metagenome_taxonomy_factory)
+    amplicon_md = use.init_artifact('amplicon-metadata', amplicon_metadata_factory)
+    metagenome_md = use.init_artifact('metagenome-metadata',
+                                      metagenome_metadata_factory)
+    tables = use.construct_artifact_collection(
+        'tables', {'amplicon': amplicon, 'metagenome': metagenome})
+    taxonomies = use.construct_artifact_collection(
+        'taxonomies', {'amplicon': amplicon_tax, 'metagenome': metagenome_tax})
+    metadata = use.construct_artifact_collection(
+        'metadata', {'amplicon': amplicon_md, 'metagenome': metagenome_md})
+    use.action(
+        use.UsageAction('confluence', 'integrate'),
+        use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=genus_tree,
+                        level=6, total=1_000_000, metadata=metadata),
+        use.UsageOutputNames(relative_table='genus-relative-table',
+                             frequency_table='genus-frequency-table',
+                             taxonomy='genus-taxonomy',
+                             metadata='genus-metadata'),
     )

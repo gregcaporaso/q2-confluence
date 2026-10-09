@@ -16,9 +16,11 @@ from q2_types.tree import Phylogeny, Rooted
 from la_confluence import __version__
 from la_confluence._examples import (frequency_one_million,
                                      gtdb_tree_collapse_genus,
+                                     integrate_at_genus,
                                      merge_metadata_union,
                                      summarize_inputs_two_studies)
 from la_confluence._inputs import summarize_inputs
+from la_confluence._integrate import integrate
 from la_confluence._metadata import merge_metadata
 from la_confluence._table import frequency
 from la_confluence._tree import gtdb_tree_collapse
@@ -138,4 +140,47 @@ plugin.methods.register_function(
         'values in such a column is an error. Unlike metadata merge, this takes '
         'a collection and offers the union.'),
     examples={'Union of two studies': merge_metadata_union},
+)
+
+plugin.pipelines.register_function(
+    function=integrate,
+    inputs={'tables': Collection[FeatureTable[Frequency]],
+            'taxonomies': Collection[FeatureData[Taxonomy]],
+            'tree': Phylogeny[Rooted],
+            'metadata': Collection[ImmutableMetadata]},
+    parameters={'level': Int % Range(1, None),
+                'total': Int % Range(1, None)},
+    outputs=[('relative_table', FeatureTable[RelativeFrequency]),
+             ('frequency_table', FeatureTable[Frequency]),
+             ('taxonomy', FeatureData[Taxonomy]),
+             ('metadata', ImmutableMetadata)],
+    input_descriptions={
+        'tables': 'One count table per source, keyed by a label (profiles '
+                  'reported as proportions go through frequency first).',
+        'taxonomies': 'The taxonomy of each table\'s features, same keys, all '
+                      'from the same reference release.',
+        'tree': 'The reference tree collapsed to the same level with '
+                'gtdb-tree-collapse.',
+        'metadata': 'The studies\' sample metadata, keyed by a label '
+                    '(optional).'},
+    parameter_descriptions={
+        'level': 'The taxonomic level to collapse to, as in taxa collapse.',
+        'total': 'The per-sample total of the frequency table output.'},
+    output_descriptions={
+        'relative_table': 'Every source collapsed to the level, unnamed features '
+                          'dropped, as proportions; sample IDs are <id>-<key>.',
+        'frequency_table': 'The same table as counts at the given total.',
+        'taxonomy': 'The taxonomy of the merged features (their IDs).',
+        'metadata': 'One row per merged sample: sample_id (the original ID), '
+                    'source (the key), unassigned_share (dropped at the level), '
+                    'and the union of the studies\' metadata.'},
+    name='Integrate profiles at one taxonomic level',
+    description=(
+        'For each source: taxa collapse to the level, drop the features without '
+        'a name at that level, convert to proportions, suffix the sample IDs '
+        'with the key. Merge, check every feature is a tip of the tree, rescale '
+        'to counts, derive the taxonomy from the feature IDs, and build the '
+        'metadata. Samples with the same ID in two sources are a pair, which '
+        'paired-report uses.'),
+    examples={'Amplicon and metagenome at genus': integrate_at_genus},
 )

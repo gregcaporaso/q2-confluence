@@ -1,0 +1,101 @@
+# ----------------------------------------------------------------------------
+# Copyright (c) 2026, Greg Caporaso.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file LICENSE, distributed with this software.
+# ----------------------------------------------------------------------------
+
+import biom
+import pandas as pd
+import qiime2
+import skbio
+from q2_types.tree import NewickFormat
+
+from ._taxonomy import is_named
+
+
+def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
+    """Collapse every table to `level`, drop what is unnamed there, merge.
+
+    `tables` and `taxonomies` are collections with the same keys; `tree` is
+    the reference tree collapsed to the same level. Sample IDs in the merged
+    table are '<id>-<key>', and the output metadata records the original ID
+    (`sample_id`), the key (`source`) and the share of each sample dropped as
+    unnamed at the level (`unassigned_share`), joined to the union of the
+    studies' metadata when given.
+    """
+    keys = list(tables.keys())   # a ResultCollection: iterate explicitly
+    if set(keys) != set(taxonomies.keys()):
+        raise ValueError('tables and taxonomies must have the same keys: '
+                         f'{sorted(keys)} vs {sorted(taxonomies.keys())}')
+    collapse = ctx.get_action('taxa', 'collapse')
+    filter_features = ctx.get_action('feature_table', 'filter_features')
+    relative_frequency = ctx.get_action('feature_table', 'relative_frequency')
+    rename_ids = ctx.get_action('feature_table', 'rename_ids')
+    merge = ctx.get_action('feature_table', 'merge')
+    ids_to_taxonomy = ctx.get_action('taxa', 'feature_ids_to_taxonomy')
+    frequency = ctx.get_action('confluence', 'frequency')
+    merge_metadata = ctx.get_action('confluence', 'merge_metadata')
+
+    relatives, rows = [], []
+    for key in keys:
+        collapsed, = collapse(table=tables[key], taxonomy=taxonomies[key],
+                              level=level)
+        before = _sample_sums(collapsed)
+        unnamed = [i for i in collapsed.view(biom.Table).ids(axis='observation')
+                   if not is_named(i)]
+        kept = collapsed
+        if unnamed:
+            kept, = filter_features(table=collapsed, metadata=_ids(unnamed),
+                                    exclude_ids=True)
+        after = _sample_sums(kept).reindex(before.index).fillna(0)
+        relative, = relative_frequency(table=kept)
+        new_ids = {i: f'{i}-{key}' for i in after.index}
+        renamed, = rename_ids(table=relative, metadata=_column(new_ids),
+                              axis='sample', strict=True)
+        relatives.append(renamed)
+        for i in after.index:
+            rows.append({'sample-id': new_ids[i], 'sample_id': i, 'source': key,
+                         'unassigned_share': 1 - after[i] / before[i]})
+
+    merged, = merge(tables=relatives)
+    _check_tips(merged, tree)
+    counts, = frequency(table=merged, total=total)
+    taxonomy, = ids_to_taxonomy(table=merged)
+
+    md = pd.DataFrame(rows).set_index('sample-id')
+    if metadata:
+        studies, = merge_metadata(metadata=metadata, how='union')
+        studies = studies.view(qiime2.Metadata).to_dataframe()
+        md = md.join(studies, on='sample_id')
+    merged_md = ctx.make_artifact('ImmutableMetadata', qiime2.Metadata(md))
+    return merged, counts, taxonomy, merged_md
+
+
+def _sample_sums(table):
+    t = table.view(biom.Table)
+    return pd.Series(t.sum(axis='sample'), index=t.ids())
+
+
+def _ids(ids):
+    return qiime2.Metadata(pd.DataFrame(index=pd.Index(ids, name='feature-id')))
+
+
+def _column(mapping):
+    s = pd.Series(mapping, name='new-id')
+    s.index.name = 'sample-id'
+    return qiime2.CategoricalMetadataColumn(s)
+
+
+def _check_tips(table, tree):
+    newick = tree.view(NewickFormat)
+    t = skbio.TreeNode.read(str(newick), format='newick',
+                            convert_underscores=False, verify=False)
+    tips = {n.name for n in t.tips()}
+    missing = [i for i in table.view(biom.Table).ids(axis='observation')
+               if i not in tips]
+    if missing:
+        raise ValueError(f'{len(missing)} features are not tips of the tree, e.g. '
+                         f'{missing[:3]}; collapse the reference tree to the same '
+                         'level, from the same reference release')
