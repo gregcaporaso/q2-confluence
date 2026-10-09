@@ -163,7 +163,7 @@ plugin.pipelines.register_function(
     outputs=[('relative_table', FeatureTable[RelativeFrequency]),
              ('frequency_table', FeatureTable[Frequency]),
              ('taxonomy', FeatureData[Taxonomy]),
-             ('metadata', ImmutableMetadata)],
+             ('integrated_metadata', ImmutableMetadata)],
     input_descriptions={
         'tables': 'One count table per source, keyed by a label (profiles '
                   'reported as proportions go through frequency first).',
@@ -181,7 +181,7 @@ plugin.pipelines.register_function(
                           'dropped, as proportions; sample IDs are <id>-<key>.',
         'frequency_table': 'The same table as counts at the given total.',
         'taxonomy': 'The taxonomy of the merged features (their IDs).',
-        'metadata': 'One row per merged sample: original-sample-id, '
+        'integrated_metadata': 'One row per merged sample: original-sample-id, '
                     'source (the key), unassigned-share (dropped at the level), '
                     'and the union of the studies\' metadata.'},
     name='Integrate profiles at one taxonomic level',

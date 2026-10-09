@@ -226,7 +226,7 @@ def integrate_at_genus(use):
         use.UsageOutputNames(relative_table='genus-relative-table',
                              frequency_table='genus-frequency-table',
                              taxonomy='genus-taxonomy',
-                             metadata='genus-metadata'),
+                             integrated_metadata='genus-metadata'),
     )
 
 
@@ -413,7 +413,7 @@ def paired_report_example(use):
         use.UsageOutputNames(relative_table='genus-relative-table',
                              frequency_table='genus-frequency-table',
                              taxonomy='genus-taxonomy',
-                             metadata='genus-metadata'),
+                             integrated_metadata='genus-metadata'),
     )
     use.action(
         use.UsageAction('confluence', 'paired_report'),
