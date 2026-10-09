@@ -3,8 +3,27 @@
 A [QIIME 2](https://qiime2.org) plugin by Greg Caporaso (jgc@caplab.dev) that integrates 16S rRNA amplicon and shotgun metagenome taxonomic profiles on one GTDB release.
 The registered plugin name is `confluence` (`qiime confluence --help`); the Python package is `la_confluence`.
 
-Status: in development, not yet released.
+Status: in development, not yet released; the repository is private for now.
 Actions marked deprecated at registration are provisional and name the plugin they are expected to move to.
+
+## Actions
+
+The workflow, in order (`qiime confluence <action> --help` for the details):
+
+| Action | Role | Status |
+|---|---|---|
+| `fetch-sylph-database` | Pre-built sylph database of the GTDB species representatives (226 or 232) with its sylph-tax taxonomy | provisional, intended for MOSHPIT |
+| `profile-reads` | sylph sketch, profile and taxprof on paired-end reads: genome-keyed taxonomic and sequence abundance tables, taxonomy, per-sample stats | provisional, intended for MOSHPIT |
+| `frequency` | Proportions to counts at one per-sample total, for actions that need counts | provisional, intended for q2-feature-table |
+| `gtdb-tree-collapse` | A reference tree collapsed to one tip per taxon at a level, named like `taxa collapse` IDs; once per release and level | provisional, intended for q2-phylogeny |
+| `summarize-inputs` | Which sample IDs the tables and metadata of the studies share | stays |
+| `merge-metadata` | Union or intersection of several studies' metadata | stays |
+| `integrate` | Every source collapsed to the level, unnamed features dropped, merged with `original-sample-id` and `source` metadata columns; sample IDs become `<id>-<key>` | stays |
+| `paired-report` | On the samples every source profiled: bootstrapped ordination, PERMANOVA by source, random forest with nested cross-validation, per-feature summary, one report | stays |
+| `summarize-paired-features` | The per-feature summary on its own | stays |
+
+The amplicon side (denoising, GTDB classification, the SILVA-based organelle filter) and the metagenome read preparation (trimming, host read removal) are stock QIIME 2 and MOSHPIT actions and are described in the documentation rather than wrapped here.
+Every action carries a usage example that the test suite executes.
 
 ## Development installation
 
