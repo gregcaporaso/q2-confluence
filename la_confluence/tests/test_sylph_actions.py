@@ -40,7 +40,7 @@ class ProfileReadsTests(TestPluginBase):
         self.assertEqual(rel.sum(axis='sample')[2], 0.0)
         stats = stats.view(qiime2.Metadata).to_dataframe()
         self.assertEqual(stats.loc['sample-3', 'genomes'], 0)
-        self.assertEqual(stats.loc['sample-3', 'unknown_share'], 1.0)
+        self.assertEqual(stats.loc['sample-3', 'unknown-share'], 1.0)
         self.assertEqual(stats.loc['sample-2', 'genomes'], 2)
         self.assertEqual(tax.view(pd.Series)['GCF_000002.1'],
                          ex._TAXONOMY['RS_GCF_1'])

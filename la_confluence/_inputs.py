@@ -21,9 +21,9 @@ def summarize_inputs(output_dir: str, tables: biom.Table,
                      metadata: qiime2.Metadata = None) -> None:
     """Which sample IDs do the inputs share? `tables` and `metadata` are
     collections (dicts keyed by label); the labels must not collide."""
-    ids = {f'table {k}': set(t.ids()) for k, t in tables.items()}
+    ids = {f'table-{k}': set(t.ids()) for k, t in tables.items()}
     for k, md in (metadata or {}).items():
-        key = f'metadata {k}'
+        key = f'metadata-{k}'
         if key in ids:
             raise ValueError(f'duplicate input label {k!r}')
         ids[key] = set(md.ids)
@@ -33,7 +33,7 @@ def summarize_inputs(output_dir: str, tables: biom.Table,
         'input': labels,
         'samples': [len(ids[k]) for k in labels],
         'features': [len(tables[k[6:]].ids(axis='observation'))
-                     if k.startswith('table ') else '' for k in labels]})
+                     if k.startswith('table-') else '' for k in labels]})
     overlap = pd.DataFrame([[len(ids[a] & ids[b]) for b in labels] for a in labels],
                            index=labels, columns=labels)
     all_ids = sorted(set.union(*ids.values()))
@@ -41,7 +41,7 @@ def summarize_inputs(output_dir: str, tables: biom.Table,
                               index=pd.Index(all_ids, name='sample-id'))
     membership.to_csv(os.path.join(output_dir, 'sample-membership.tsv'), sep='\t')
     patterns = (membership.apply(lambda r: ', '.join(k for k in labels if r[k]), axis=1)
-                .value_counts().rename_axis('present in').reset_index(name='samples'))
+                .value_counts().rename_axis('present-in').reset_index(name='samples'))
     in_all = sum(membership.all(axis=1))
 
     html = dict(index=False, classes='table table-striped', border=0)

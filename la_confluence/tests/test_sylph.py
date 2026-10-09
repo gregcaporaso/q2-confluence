@@ -77,9 +77,9 @@ class ProfilesTests(unittest.TestCase):
                          LINEAGE.replace('|', ';') + ';s__Blautia_A obeum')
         self.assertEqual(stats.loc['s1', 'genomes'], 2)
         self.assertEqual(stats.loc['s1', 'genera'], 1)
-        self.assertAlmostEqual(stats.loc['s1', 'unknown_share'], 0.2)
-        self.assertAlmostEqual(stats.loc['s2', 'unknown_share'], 0.5)
-        self.assertAlmostEqual(stats.loc['s1', 'median_ani'], 98.2)
+        self.assertAlmostEqual(stats.loc['s1', 'unknown-share'], 0.2)
+        self.assertAlmostEqual(stats.loc['s2', 'unknown-share'], 0.5)
+        self.assertAlmostEqual(stats.loc['s1', 'median-ani'], 98.2)
 
     def test_conflicting_taxonomy(self):
         p = os.path.join(self.tmp.name, 's3.sylphmpa')

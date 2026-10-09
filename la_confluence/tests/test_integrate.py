@@ -57,19 +57,19 @@ class IntegrateTests(TestPluginBase):
         md = md.view(qiime2.Metadata).to_dataframe()
         self.assertEqual(md.loc['sample-1-amplicon', 'original-sample-id'], 'sample-1')
         self.assertEqual(md.loc['sample-1-amplicon', 'source'], 'amplicon')
-        self.assertAlmostEqual(md.loc['sample-1-amplicon', 'unassigned_share'],
+        self.assertAlmostEqual(md.loc['sample-1-amplicon', 'unassigned-share'],
                                1 / 16)
         self.assertEqual(md.loc['sample-1-amplicon', 'site'], 'compost')
-        self.assertAlmostEqual(md.loc['sample-3-metagenome', 'read_pairs_millions'],
+        self.assertAlmostEqual(md.loc['sample-3-metagenome', 'read-pairs-millions'],
                                38.7)
-        self.assertEqual(md.loc['sample-2-metagenome', 'unassigned_share'], 0)
+        self.assertEqual(md.loc['sample-2-metagenome', 'unassigned-share'], 0)
 
     def test_without_metadata(self):
         _, _, _, md = self.integrate(self.tables, self.taxonomies,
                                      self.genus_tree, 6, 1000)
         cols = md.view(qiime2.Metadata).to_dataframe().columns
         self.assertEqual(sorted(cols),
-                         ['original-sample-id', 'source', 'unassigned_share'])
+                         ['original-sample-id', 'source', 'unassigned-share'])
 
     def test_tree_at_another_level(self):
         family_tree, = self.plugin.methods['gtdb_tree_collapse'](

@@ -37,7 +37,7 @@ class SummarizeInputsTests(unittest.TestCase):
                             sep='\t', index_col=0)
             self.assertEqual(list(m.index), ['s1', 's2', 's3', 's4'])
             self.assertEqual(list(m.columns),
-                             ['table 16s', 'table mg', 'metadata study'])
+                             ['table-16s', 'table-mg', 'metadata-study'])
             self.assertEqual(m.loc['s4'].tolist(), [False, False, True])
             self.assertEqual(m.loc['s2'].tolist(), [True, True, True])
 

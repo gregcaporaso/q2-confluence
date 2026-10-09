@@ -22,7 +22,7 @@ def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
     the reference tree collapsed to the same level. Sample IDs in the merged
     table are '<id>-<key>', and the output metadata records the original ID
     (`original-sample-id`), the key (`source`) and the share of each sample dropped as
-    unnamed at the level (`unassigned_share`), joined to the union of the
+    unnamed at the level (`unassigned-share`), joined to the union of the
     studies' metadata when given.
     """
     keys = list(tables.keys())   # a ResultCollection: iterate explicitly
@@ -58,7 +58,7 @@ def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
         for i in after.index:
             rows.append({'sample-id': new_ids[i], 'original-sample-id': i,
                          'source': key,
-                         'unassigned_share': 1 - after[i] / before[i]})
+                         'unassigned-share': 1 - after[i] / before[i]})
 
     merged, = merge(tables=relatives)
     _check_tips(merged, tree)

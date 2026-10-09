@@ -178,7 +178,7 @@ plugin.pipelines.register_function(
         'frequency_table': 'The same table as counts at the given total.',
         'taxonomy': 'The taxonomy of the merged features (their IDs).',
         'metadata': 'One row per merged sample: original-sample-id, '
-                    'source (the key), unassigned_share (dropped at the level), '
+                    'source (the key), unassigned-share (dropped at the level), '
                     'and the union of the studies\' metadata.'},
     name='Integrate profiles at one taxonomic level',
     description=(
@@ -234,7 +234,7 @@ plugin.methods.register_function(
         'threads': 'Threads for sylph sketch and profile.',
         'estimate_unknown': 'Estimate the share of reads from no genome in the '
                             'database (sylph profile -u); it is reported per '
-                            'sample as unknown_share and the sequence abundance '
+                            'sample as unknown-share and the sequence abundance '
                             'is renormalized over the detected genomes.'},
     output_descriptions={
         'taxonomic_abundance': 'Per sample, the share of each detected genome '

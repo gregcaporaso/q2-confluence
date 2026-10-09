@@ -115,7 +115,7 @@ def amplicon_metadata_factory():
 def metagenome_metadata_factory():
     return _metadata_factory(['sample-2', 'sample-3', 'sample-4'],
                              site=['compost', 'soil', 'soil'],
-                             read_pairs_millions=[41.2, 38.7, 27.5])
+                             **{'read-pairs-millions': [41.2, 38.7, 27.5]})
 
 
 def summarize_inputs_two_studies(use):

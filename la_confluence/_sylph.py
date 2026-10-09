@@ -84,14 +84,14 @@ def profiles_to_artifacts(paths, samples=None):
                 raise ValueError(f'{acc}: two taxonomy strings across samples')
         stats.append({'sample-id': sample, 'genomes': len(df),
                       'genera': df['Taxon'].str.split(';').str[5].nunique(),
-                      'median_ani': df['ani'].median() if len(df) else np.nan,
-                      'unknown_share': round(1 - df['seq'].sum() / 100, 6)})
+                      'median-ani': df['ani'].median() if len(df) else np.nan,
+                      'unknown-share': round(1 - df['seq'].sum() / 100, 6)})
     for sample in (samples or []):
         if sample not in per_sample:
             per_sample[sample] = pd.DataFrame(
                 columns=['Taxon', 'rel', 'seq', 'ani'])
             stats.append({'sample-id': sample, 'genomes': 0, 'genera': 0,
-                          'median_ani': np.nan, 'unknown_share': 1.0})
+                          'median-ani': np.nan, 'unknown-share': 1.0})
     samples, features = sorted(per_sample), sorted(taxonomy)
 
     def table(col, renormalize):
