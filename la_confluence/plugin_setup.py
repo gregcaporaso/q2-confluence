@@ -177,7 +177,7 @@ plugin.pipelines.register_function(
                           'dropped, as proportions; sample IDs are <id>-<key>.',
         'frequency_table': 'The same table as counts at the given total.',
         'taxonomy': 'The taxonomy of the merged features (their IDs).',
-        'metadata': 'One row per merged sample: sample_id (the original ID), '
+        'metadata': 'One row per merged sample: original-sample-id, '
                     'source (the key), unassigned_share (dropped at the level), '
                     'and the union of the studies\' metadata.'},
     name='Integrate profiles at one taxonomic level',

@@ -21,7 +21,7 @@ def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
     `tables` and `taxonomies` are collections with the same keys; `tree` is
     the reference tree collapsed to the same level. Sample IDs in the merged
     table are '<id>-<key>', and the output metadata records the original ID
-    (`sample_id`), the key (`source`) and the share of each sample dropped as
+    (`original-sample-id`), the key (`source`) and the share of each sample dropped as
     unnamed at the level (`unassigned_share`), joined to the union of the
     studies' metadata when given.
     """
@@ -56,7 +56,8 @@ def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
                               axis='sample', strict=True)
         relatives.append(renamed)
         for i in after.index:
-            rows.append({'sample-id': new_ids[i], 'sample_id': i, 'source': key,
+            rows.append({'sample-id': new_ids[i], 'original-sample-id': i,
+                         'source': key,
                          'unassigned_share': 1 - after[i] / before[i]})
 
     merged, = merge(tables=relatives)
@@ -68,7 +69,7 @@ def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
     if metadata:
         studies, = merge_metadata(metadata=metadata, how='union')
         studies = studies.view(qiime2.Metadata).to_dataframe()
-        md = md.join(studies, on='sample_id')
+        md = md.join(studies, on='original-sample-id')
     merged_md = ctx.make_artifact('ImmutableMetadata', qiime2.Metadata(md))
     return merged, counts, taxonomy, merged_md
 

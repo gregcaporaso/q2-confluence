@@ -55,7 +55,7 @@ class IntegrateTests(TestPluginBase):
         tax = taxonomy.view(pd.Series)
         self.assertEqual(tax[BLAUTIA], BLAUTIA)
         md = md.view(qiime2.Metadata).to_dataframe()
-        self.assertEqual(md.loc['sample-1-amplicon', 'sample_id'], 'sample-1')
+        self.assertEqual(md.loc['sample-1-amplicon', 'original-sample-id'], 'sample-1')
         self.assertEqual(md.loc['sample-1-amplicon', 'source'], 'amplicon')
         self.assertAlmostEqual(md.loc['sample-1-amplicon', 'unassigned_share'],
                                1 / 16)
@@ -68,7 +68,8 @@ class IntegrateTests(TestPluginBase):
         _, _, _, md = self.integrate(self.tables, self.taxonomies,
                                      self.genus_tree, 6, 1000)
         cols = md.view(qiime2.Metadata).to_dataframe().columns
-        self.assertEqual(sorted(cols), ['sample_id', 'source', 'unassigned_share'])
+        self.assertEqual(sorted(cols),
+                         ['original-sample-id', 'source', 'unassigned_share'])
 
     def test_tree_at_another_level(self):
         family_tree, = self.plugin.methods['gtdb_tree_collapse'](
