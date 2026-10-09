@@ -14,7 +14,7 @@ tips, and the matching genome-keyed taxonomy.
 """
 
 import pandas as pd
-from qiime2 import Artifact
+from qiime2 import Artifact, Metadata
 from q2_types.tree import NewickFormat
 
 _TREE = ("(((RS_GCF_1:0.10,RS_GCF_2:0.30)'100.0:g__Blautia':0.50,"
@@ -77,4 +77,65 @@ def frequency_one_million(use):
         use.UsageAction('confluence', 'frequency'),
         use.UsageInputs(table=table, total=1_000_000),
         use.UsageOutputNames(table='frequency-table'),
+    )
+
+
+def amplicon_table_factory():
+    import biom
+    import numpy as np
+    table = biom.Table(np.array([[12, 0, 7], [3, 9, 1]]), ['asv-1', 'asv-2'],
+                       ['sample-1', 'sample-2', 'sample-3'])
+    return Artifact.import_data('FeatureTable[Frequency]', table)
+
+
+def metagenome_table_factory():
+    import biom
+    import numpy as np
+    table = biom.Table(np.array([[0.6, 0.1], [0.4, 0.9]]), ['GCF_1', 'GCF_2'],
+                       ['sample-2', 'sample-3'])
+    return Artifact.import_data('FeatureTable[RelativeFrequency]', table)
+
+
+def _metadata_factory(ids, **columns):
+    df = pd.DataFrame(columns, index=pd.Index(ids, name='sample-id'))
+    return Artifact.import_data('ImmutableMetadata', Metadata(df))
+
+
+def amplicon_metadata_factory():
+    return _metadata_factory(['sample-1', 'sample-2', 'sample-3'],
+                             site=['compost', 'compost', 'soil'],
+                             ph=[6.8, 7.2, 7.9])
+
+
+def metagenome_metadata_factory():
+    return _metadata_factory(['sample-2', 'sample-3', 'sample-4'],
+                             site=['compost', 'soil', 'soil'],
+                             read_pairs_millions=[41.2, 38.7, 27.5])
+
+
+def summarize_inputs_two_studies(use):
+    amplicon = use.init_artifact('amplicon-table', amplicon_table_factory)
+    metagenome = use.init_artifact('metagenome-table', metagenome_table_factory)
+    amplicon_md = use.init_artifact('amplicon-metadata', amplicon_metadata_factory)
+    metagenome_md = use.init_artifact('metagenome-metadata',
+                                      metagenome_metadata_factory)
+    use.action(
+        use.UsageAction('confluence', 'summarize_inputs'),
+        use.UsageInputs(tables={'amplicon': amplicon, 'metagenome': metagenome},
+                        metadata={'amplicon': amplicon_md,
+                                  'metagenome': metagenome_md}),
+        use.UsageOutputNames(visualization='inputs-summary'),
+    )
+
+
+def merge_metadata_union(use):
+    amplicon_md = use.init_artifact('amplicon-metadata', amplicon_metadata_factory)
+    metagenome_md = use.init_artifact('metagenome-metadata',
+                                      metagenome_metadata_factory)
+    use.action(
+        use.UsageAction('confluence', 'merge_metadata'),
+        use.UsageInputs(metadata={'amplicon': amplicon_md,
+                                  'metagenome': metagenome_md},
+                        how='union'),
+        use.UsageOutputNames(merged_metadata='merged-metadata'),
     )

@@ -6,14 +6,20 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from qiime2.plugin import Citations, Int, Plugin, Range
+from qiime2.plugin import (Choices, Citations, Collection, Int, Plugin, Range,
+                           Str)
 from q2_types.feature_data import FeatureData, Taxonomy
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
+from q2_types.metadata import ImmutableMetadata
 from q2_types.tree import Phylogeny, Rooted
 
 from la_confluence import __version__
 from la_confluence._examples import (frequency_one_million,
-                                     gtdb_tree_collapse_genus)
+                                     gtdb_tree_collapse_genus,
+                                     merge_metadata_union,
+                                     summarize_inputs_two_studies)
+from la_confluence._inputs import summarize_inputs
+from la_confluence._metadata import merge_metadata
 from la_confluence._table import frequency
 from la_confluence._tree import gtdb_tree_collapse
 
@@ -90,4 +96,46 @@ plugin.methods.register_function(
         'move to q2-feature-table.'),
     deprecated=True,
     examples={'Scale to one million per sample': frequency_one_million},
+)
+
+plugin.visualizers.register_function(
+    function=summarize_inputs,
+    inputs={'tables': Collection[FeatureTable[Frequency | RelativeFrequency]],
+            'metadata': Collection[ImmutableMetadata]},
+    parameters={},
+    input_descriptions={
+        'tables': 'The feature tables to integrate, keyed by a label.',
+        'metadata': 'The studies\' sample metadata, keyed by a label '
+                    '(import a metadata TSV as ImmutableMetadata).'},
+    parameter_descriptions={},
+    name='Summarize the sample IDs shared between inputs',
+    description=(
+        'Before integrating: how many samples each table and metadata input '
+        'holds, how many sample IDs each pair shares, and how many IDs fall '
+        'into each combination of inputs, with the per-sample membership as a '
+        'TSV. Integration pairs samples by identical IDs, so this shows which '
+        'samples will pair and which metadata rows have no table.'),
+    examples={'Two studies': summarize_inputs_two_studies},
+)
+
+plugin.methods.register_function(
+    function=merge_metadata,
+    inputs={'metadata': Collection[ImmutableMetadata]},
+    parameters={'how': Str % Choices(['union', 'intersection'])},
+    outputs=[('merged_metadata', ImmutableMetadata)],
+    input_descriptions={
+        'metadata': 'The studies\' sample metadata, keyed by a label.'},
+    parameter_descriptions={
+        'how': 'union keeps every sample ID in any input; intersection keeps '
+               'only the IDs present in every input (an error if there are '
+               'none).'},
+    output_descriptions={'merged_metadata': 'One metadata table over the '
+                                            'chosen IDs and every column.'},
+    name='Merge the metadata of several studies',
+    description=(
+        'Outer or inner join on sample ID over any number of metadata inputs. '
+        'Columns with the same name are combined; a sample with two different '
+        'values in such a column is an error. Unlike metadata merge, this takes '
+        'a collection and offers the union.'),
+    examples={'Union of two studies': merge_metadata_union},
 )

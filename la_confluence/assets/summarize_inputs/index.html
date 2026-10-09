@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h3>Inputs</h3>
+  {{ inputs | safe }}
+  <h3>Sample IDs shared between inputs</h3>
+  <p>{{ n_all }} sample IDs in all; {{ in_all }} present in every input.</p>
+  {{ overlap | safe }}
+  <h3>Sample IDs by the inputs they are present in</h3>
+  <p>
+    <a class="btn btn-default" href="sample-membership.tsv" target="_blank" rel="noopener noreferrer">
+      Download the per-sample membership table as a TSV
+    </a>
+  </p>
+  {{ patterns | safe }}
+{% endblock %}
