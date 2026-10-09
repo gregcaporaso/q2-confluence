@@ -31,8 +31,8 @@ jobs:
     - name: Set up Conda
       uses: qiime2-cutlery/setup-miniconda@v3
       with:
-        activate-environment: la-confluence-qiime2-qiime2-dev
-        environment-file: environment-files/la-confluence-qiime2-qiime2-dev.yml
+        activate-environment: la-confluence-qiime2-dev
+        environment-file: environment-files/la-confluence-qiime2-dev.yml
         auto-activate-base: false
 
     - name: Install plugin

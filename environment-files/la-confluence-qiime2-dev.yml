@@ -1,0 +1,18 @@
+# Development environment: the QIIME 2 2026.7 "qiime2" distribution (rachis-qiime2
+# metapackage: q2-boots, q2-sample-classifier, q2-diversity, q2-taxa, ...) plus
+# sylph and sylph-tax for profile-reads, and the documentation toolchain.
+#   conda env create -n la-confluence-dev --file environment-files/la-confluence-qiime2-dev.yml
+#   conda activate la-confluence-dev && make dev
+channels:
+- https://packages.qiime2.org/qiime2/2026.7/qiime2/released
+- conda-forge
+- bioconda
+dependencies:
+  - rachis-qiime2
+  - sylph=1.0.0
+  - sylph-tax=1.9.2
+  - nodejs
+  - pip
+  - pip:
+    - q2doc@git+https://github.com/qiime2/q2doc@dev
+    - jupyter-book

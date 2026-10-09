@@ -1,0 +1,27 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: la-confluence
+  title: la-confluence
+  github: https://github.com/gregcaporaso/la-confluence/
+
+  references:
+    rachis-glossary-target: https://news.rachis.org/en/latest/
+    rachis-library-target: https://library.qiime2.org
+
+  plugins:
+    - type: executable
+      path: q2doc-plug.py
+
+  toc:
+    - file: intro.md
+
+  downloads:
+    - file: _static/environment.yml
+      title: Conda environment file
+
+site:
+  template: book-theme
+  options:
+      folders: true
+      pretty_urls: false

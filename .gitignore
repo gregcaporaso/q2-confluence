@@ -144,3 +144,4 @@ cython_debug/
 
 # Version file from versioningit
 _version.py
+docs/_static/environment.yml

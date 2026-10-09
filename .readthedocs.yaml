@@ -1,0 +1,22 @@
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+version: 2
+
+build:
+  os: ubuntu-24.04
+  tools:
+    python: "mambaforge-latest"
+  jobs:
+    create_environment:
+      - conda env create -p .env/ --file environment-files/la-confluence-qiime2-dev.yml
+    build:
+      html:
+        - PATH=$(pwd)/.env/bin/:$PATH pip install .
+        - PATH=$(pwd)/.env/bin/:$PATH q2doc refresh-cache
+        - PATH=$(pwd)/.env/bin/:$PATH make html
+        - mkdir -p $READTHEDOCS_OUTPUT
+        - cp -a docs/_build/* $READTHEDOCS_OUTPUT/
+
+conda:
+  environment: environment-files/la-confluence-qiime2-dev.yml
