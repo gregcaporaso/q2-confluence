@@ -333,3 +333,94 @@ def profile_reads_example(use):
                              sequence_abundance='sylph-sequence-abundance',
                              taxonomy='sylph-taxonomy', stats='sylph-stats'),
     )
+
+
+# --- paired study: six samples profiled by both sources ----------------------
+
+_PAIRED_SAMPLES = [f'sample-{i}' for i in range(1, 7)]
+
+
+def _paired_counts(rng, bias):
+    """Six samples x three taxa; `bias` tilts the third taxon by source so the
+    random forest has a signal."""
+    base = rng.integers(50, 500, size=(3, 6)).astype(float)
+    base[2] *= bias
+    return base
+
+
+def paired_amplicon_table_factory():
+    import biom
+    import numpy as np
+    rng = np.random.default_rng(1)
+    counts = _paired_counts(rng, 0.2)
+    counts = np.vstack([counts, rng.integers(1, 20, size=(1, 6))])  # unnamed ASV
+    table = biom.Table(counts, ['asv-1', 'asv-2', 'asv-3', 'asv-4'],
+                       _PAIRED_SAMPLES)
+    return Artifact.import_data('FeatureTable[Frequency]', table)
+
+
+def paired_amplicon_taxonomy_factory():
+    return _taxonomy_factory({
+        'asv-1': _TAXONOMY['RS_GCF_1'], 'asv-2': _TAXONOMY['GB_GCA_3'],
+        'asv-3': _TAXONOMY['RS_GCF_4'], 'asv-4': _ASV_TAXONOMY['asv-3']})
+
+
+def paired_metagenome_table_factory():
+    import biom
+    import numpy as np
+    rng = np.random.default_rng(2)
+    counts = _paired_counts(rng, 5.0) * 1000
+    table = biom.Table(counts, ['GCF_1', 'GCA_3', 'GCF_4'], _PAIRED_SAMPLES)
+    return Artifact.import_data('FeatureTable[Frequency]', table)
+
+
+def paired_metagenome_taxonomy_factory():
+    return _taxonomy_factory({'GCF_1': _TAXONOMY['RS_GCF_1'],
+                              'GCA_3': _TAXONOMY['GB_GCA_3'],
+                              'GCF_4': _TAXONOMY['RS_GCF_4']})
+
+
+def paired_metadata_factory():
+    return _metadata_factory(_PAIRED_SAMPLES,
+                             site=['compost'] * 3 + ['soil'] * 3)
+
+
+def paired_report_example(use):
+    tree = use.init_artifact('reference-tree', reference_tree_factory)
+    taxonomy = use.init_artifact('reference-taxonomy',
+                                 reference_taxonomy_factory)
+    genus_tree, = use.action(
+        use.UsageAction('confluence', 'gtdb_tree_collapse'),
+        use.UsageInputs(tree=tree, taxonomy=taxonomy, level=6),
+        use.UsageOutputNames(collapsed_tree='genus-tree'),
+    )
+    tables = use.construct_artifact_collection('tables', {
+        'amplicon': use.init_artifact('amplicon-table',
+                                      paired_amplicon_table_factory),
+        'metagenome': use.init_artifact('metagenome-table',
+                                        paired_metagenome_table_factory)})
+    taxonomies = use.construct_artifact_collection('taxonomies', {
+        'amplicon': use.init_artifact('amplicon-taxonomy',
+                                      paired_amplicon_taxonomy_factory),
+        'metagenome': use.init_artifact('metagenome-taxonomy',
+                                        paired_metagenome_taxonomy_factory)})
+    metadata = use.construct_artifact_collection('metadata', {
+        'study': use.init_artifact('study-metadata', paired_metadata_factory)})
+    _, frequency_table, _, merged_metadata = use.action(
+        use.UsageAction('confluence', 'integrate'),
+        use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=genus_tree,
+                        level=6, total=1_000_000, metadata=metadata),
+        use.UsageOutputNames(relative_table='genus-relative-table',
+                             frequency_table='genus-frequency-table',
+                             taxonomy='genus-taxonomy',
+                             metadata='genus-metadata'),
+    )
+    use.action(
+        use.UsageAction('confluence', 'paired_report'),
+        use.UsageInputs(table=frequency_table, tree=genus_tree,
+                        metadata=merged_metadata, n_boots=2, permutations=99,
+                        cv=3, n_estimators=50, random_state=1),
+        use.UsageOutputNames(report='paired-report',
+                             distance_matrices='distance-matrices',
+                             feature_importance='feature-importance'),
+    )

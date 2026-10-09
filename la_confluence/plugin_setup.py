@@ -6,12 +6,14 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from qiime2.plugin import (Bool, Choices, Citations, Collection, Int, Plugin,
-                           Range, Str)
-from q2_types.feature_data import FeatureData, Taxonomy
+from qiime2.plugin import (Bool, Choices, Citations, Collection, Int, Metadata,
+                           Plugin, Range, Str, Visualization)
+from q2_types.feature_data import FeatureData, Importance, Taxonomy
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
+from q2_types.distance_matrix import DistanceMatrix
 from q2_types.metadata import ImmutableMetadata
 from q2_types.per_sample_sequences import PairedEndSequencesWithQuality
+from q2_sample_classifier import ClassifierPredictions
 from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
 
@@ -20,11 +22,13 @@ from la_confluence._examples import (frequency_one_million,
                                      gtdb_tree_collapse_genus,
                                      integrate_at_genus,
                                      merge_metadata_union,
+                                     paired_report_example,
                                      profile_reads_example,
                                      summarize_inputs_two_studies)
 from la_confluence._inputs import summarize_inputs
 from la_confluence._integrate import integrate
 from la_confluence._metadata import merge_metadata
+from la_confluence._report import paired_report, summarize_paired_features
 from la_confluence._sylph import (SylphDatabase, SylphDatabaseDirFmt, SylphDbFormat,
                                   SylphTaxonomyFormat, fetch_sylph_database,
                                   profile_reads)
@@ -255,4 +259,68 @@ plugin.methods.register_function(
     deprecated=True,
     examples={'Profile three samples against a two-genome database':
               profile_reads_example},
+)
+
+plugin.visualizers.register_function(
+    function=summarize_paired_features,
+    inputs={'table': FeatureTable[Frequency | RelativeFrequency],
+            'importance': FeatureData[Importance],
+            'predictions': SampleData[ClassifierPredictions]},
+    parameters={'metadata': Metadata},
+    input_descriptions={
+        'table': 'The integrated table of the paired samples.',
+        'importance': 'Feature importances from the random forest.',
+        'predictions': 'Cross-validated predictions of the source.'},
+    parameter_descriptions={
+        'metadata': 'The integrated metadata (columns source and '
+                    'original-sample-id).'},
+    name='Summarize the features that separate the sources',
+    description=(
+        'Per feature: random-forest importance and rank, each source\'s mean '
+        'relative abundance and prevalence, the log2 ratio between the first '
+        'two sources, and whether the feature is seen by one source only; '
+        'importance shares by direction and the cross-validated accuracy. '
+        'The full table is downloadable as a TSV.'),
+)
+
+plugin.pipelines.register_function(
+    function=paired_report,
+    inputs={'table': FeatureTable[Frequency],
+            'tree': Phylogeny[Rooted],
+            'metadata': ImmutableMetadata},
+    parameters={'n_boots': Int % Range(1, None),
+                'permutations': Int % Range(1, None),
+                'cv': Int % Range(2, None),
+                'n_estimators': Int % Range(1, None),
+                'random_state': Int,
+                'n_jobs': Int % Range(1, None)},
+    outputs=[('report', Visualization),
+             ('distance_matrices', Collection[DistanceMatrix]),
+             ('feature_importance', FeatureData[Importance])],
+    input_descriptions={
+        'table': 'The frequency table from integrate.',
+        'tree': 'The reference tree collapsed to the same level.',
+        'metadata': 'The metadata from integrate (source and '
+                    'original-sample-id).'},
+    parameter_descriptions={
+        'n_boots': 'Bootstrap iterations for q2-boots core-metrics.',
+        'permutations': 'PERMANOVA permutations.',
+        'cv': 'Folds of the nested cross-validation.',
+        'n_estimators': 'Trees in the random forest.',
+        'random_state': 'Seed for the bootstraps and the forest.',
+        'n_jobs': 'Threads for the random forest.'},
+    output_descriptions={
+        'report': 'One report: the bootstrapped ordination, PERMANOVA by source '
+                  'for every distance metric, the random forest\'s confusion '
+                  'matrix and heatmap, and the per-feature summary.',
+        'distance_matrices': 'The bootstrapped distance matrices.',
+        'feature_importance': 'The random forest\'s feature importances.'},
+    name='Compare the sources on the samples every source profiled',
+    description=(
+        'Keeps the samples whose original ID is present in every source, runs '
+        'q2-boots core-metrics with the tree at the smallest sample total, '
+        'PERMANOVA by source on every distance matrix, a random forest '
+        'classifying source with nested cross-validation, and the per-feature '
+        'summary, collated into one report.'),
+    examples={'Two sources on six paired samples': paired_report_example},
 )
