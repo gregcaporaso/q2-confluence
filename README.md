@@ -1,6 +1,6 @@
 # la-confluence
 
-A [QIIME 2](https://qiime2.org) plugin by Greg Caporaso (jgc@caplab.dev) that integrates 16S rRNA amplicon and shotgun metagenome taxonomic profiles on one GTDB release.
+A [QIIME 2](https://qiime2.org) plugin by Greg Caporaso that integrates 16S rRNA amplicon and shotgun metagenome taxonomic profiles on one GTDB release.
 The registered plugin name is `confluence` (`qiime confluence --help`); the Python package is `la_confluence`.
 
 Status: in development, not yet released; the repository is private for now.
@@ -60,4 +60,4 @@ make serve
 ## About
 
 `la-confluence` was [created from the QIIME 2 plugin template](https://develop.qiime2.org/en/stable/plugins/tutorials/create-from-template.html) on 2026-10-09.
-It is a community plugin: see the [QIIME 2 Library](https://library.qiime2.org) for support options and the [QIIME 2 Forum](https://forum.qiime2.org) for help.
+It is a community plugin: questions and bug reports go to the [QIIME 2 Forum](https://forum.qiime2.org), where the developers will see them; see the [QIIME 2 Library](https://library.qiime2.org) for the community-plugin support policy.
