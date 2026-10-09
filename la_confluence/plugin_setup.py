@@ -6,11 +6,13 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from qiime2.plugin import (Choices, Citations, Collection, Int, Plugin, Range,
-                           Str)
+from qiime2.plugin import (Bool, Choices, Citations, Collection, Int, Plugin,
+                           Range, Str)
 from q2_types.feature_data import FeatureData, Taxonomy
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
 from q2_types.metadata import ImmutableMetadata
+from q2_types.per_sample_sequences import PairedEndSequencesWithQuality
+from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
 
 from la_confluence import __version__
@@ -18,10 +20,14 @@ from la_confluence._examples import (frequency_one_million,
                                      gtdb_tree_collapse_genus,
                                      integrate_at_genus,
                                      merge_metadata_union,
+                                     profile_reads_example,
                                      summarize_inputs_two_studies)
 from la_confluence._inputs import summarize_inputs
 from la_confluence._integrate import integrate
 from la_confluence._metadata import merge_metadata
+from la_confluence._sylph import (SylphDatabase, SylphDatabaseDirFmt, SylphDbFormat,
+                                  SylphTaxonomyFormat, fetch_sylph_database,
+                                  profile_reads)
 from la_confluence._table import frequency
 from la_confluence._tree import gtdb_tree_collapse
 
@@ -183,4 +189,70 @@ plugin.pipelines.register_function(
         'metadata. Samples with the same ID in two sources are a pair, which '
         'paired-report uses.'),
     examples={'Amplicon and metagenome at genus': integrate_at_genus},
+)
+
+plugin.register_formats(SylphDbFormat, SylphTaxonomyFormat, SylphDatabaseDirFmt)
+plugin.register_semantic_types(SylphDatabase)
+plugin.register_artifact_class(
+    SylphDatabase, SylphDatabaseDirFmt,
+    description='A sylph genome sketch database with the sylph-tax taxonomy '
+                'of its genomes.')
+
+plugin.methods.register_function(
+    function=fetch_sylph_database,
+    inputs={},
+    parameters={'release': Str % Choices(['226', '232'])},
+    outputs=[('database', SylphDatabase)],
+    input_descriptions={},
+    parameter_descriptions={'release': 'The GTDB release.'},
+    output_descriptions={'database': 'The pre-built database of the GTDB '
+                                     'species representatives (c=200, about 14 '
+                                     'to 20 GB) with its taxonomy.'},
+    name='Fetch a pre-built sylph GTDB database',
+    description=(
+        'Downloads the sylph authors\' pre-built database of the GTDB species '
+        'representatives and the matching sylph-tax taxonomy metadata from '
+        'Zenodo. No checksum is published for the database. Provisional: '
+        'expected to move to MOSHPIT.'),
+    deprecated=True,
+)
+
+plugin.methods.register_function(
+    function=profile_reads,
+    inputs={'reads': SampleData[PairedEndSequencesWithQuality],
+            'database': SylphDatabase},
+    parameters={'threads': Int % Range(1, None), 'estimate_unknown': Bool},
+    outputs=[('taxonomic_abundance', FeatureTable[RelativeFrequency]),
+             ('sequence_abundance', FeatureTable[RelativeFrequency]),
+             ('taxonomy', FeatureData[Taxonomy]),
+             ('stats', ImmutableMetadata)],
+    input_descriptions={
+        'reads': 'Paired-end reads per sample (quality-filtered, host reads '
+                 'removed).',
+        'database': 'A sylph database with its taxonomy.'},
+    parameter_descriptions={
+        'threads': 'Threads for sylph sketch and profile.',
+        'estimate_unknown': 'Estimate the share of reads from no genome in the '
+                            'database (sylph profile -u); it is reported per '
+                            'sample as unknown_share and the sequence abundance '
+                            'is renormalized over the detected genomes.'},
+    output_descriptions={
+        'taxonomic_abundance': 'Per sample, the share of each detected genome '
+                               'corrected for genome size (roughly a share of '
+                               'cells; the measure to integrate).',
+        'sequence_abundance': 'Per sample, the share of reads from each '
+                              'detected genome.',
+        'taxonomy': 'The taxonomy of every detected genome, keyed by accession, '
+                    'seven ranks joined with ;.',
+        'stats': 'Per sample: genomes and genera detected, median ANI, '
+                 'unknown share.'},
+    name='Profile reads against a sylph database',
+    description=(
+        'sylph sketch on every sample, sylph profile against the database, and '
+        'sylph-tax taxprof with the database\'s taxonomy, parsed into '
+        'genome-keyed tables. A sample in which sylph detects nothing keeps an '
+        'all-zero column. Provisional: expected to move to MOSHPIT.'),
+    deprecated=True,
+    examples={'Profile three samples against a two-genome database':
+              profile_reads_example},
 )

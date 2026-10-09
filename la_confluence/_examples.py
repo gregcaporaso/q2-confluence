@@ -13,6 +13,11 @@ tree with bootstrap:taxon labels on internal nodes and genome accessions as
 tips, and the matching genome-keyed taxonomy.
 """
 
+import gzip
+import os
+import shutil
+import tempfile
+
 import pandas as pd
 from qiime2 import Artifact, Metadata
 from q2_types.tree import NewickFormat
@@ -222,4 +227,109 @@ def integrate_at_genus(use):
                              frequency_table='genus-frequency-table',
                              taxonomy='genus-taxonomy',
                              metadata='genus-metadata'),
+    )
+
+
+# --- sylph: synthetic genomes, a database sketched from them, and reads -----
+
+def _random_genome(rng, length):
+    return ''.join(rng.choice('ACGT') for _ in range(length))
+
+
+def _write_fasta(path, name, sequence):
+    with open(path, 'w') as fh:
+        fh.write(f'>{name}\n')
+        for i in range(0, len(sequence), 80):
+            fh.write(sequence[i:i + 80] + '\n')
+
+
+def _write_reads(path_prefix, rng, genome, n, read_length=150, fragment=400):
+    """Paired reads from random fragments of `genome` (R2 reverse complemented)."""
+    comp = str.maketrans('ACGT', 'TGCA')
+    with gzip.open(f'{path_prefix}_R1.fastq.gz', 'wt') as r1, \
+            gzip.open(f'{path_prefix}_R2.fastq.gz', 'wt') as r2:
+        for i in range(n):
+            start = rng.randrange(0, len(genome) - fragment)
+            frag = genome[start:start + fragment]
+            r1.write(f'@read{i}/1\n{frag[:read_length]}\n+\n{"I" * read_length}\n')
+            rev = frag[-read_length:][::-1].translate(comp)
+            r2.write(f'@read{i}/2\n{rev}\n+\n{"I" * read_length}\n')
+
+
+def synthetic_sylph_data(directory, seed=1):
+    """Two 60 kb genomes, a sylph database of them with a two-genome
+    taxonomy, and three paired-end samples: genome 1 only, both genomes, and
+    reads from a third genome the database does not hold. Returns the
+    database directory and the reads manifest path."""
+    import random
+    import subprocess
+
+    rng = random.Random(seed)
+    genomes = {'GCF_000001.1': _random_genome(rng, 60000),
+               'GCF_000002.1': _random_genome(rng, 60000)}
+    other = _random_genome(rng, 60000)
+    gdir = os.path.join(directory, 'genomes')
+    os.mkdir(gdir)
+    for acc, seq in genomes.items():
+        _write_fasta(os.path.join(gdir, f'{acc}_genomic.fna'), acc, seq)
+    db = os.path.join(directory, 'db')
+    os.mkdir(db)
+    subprocess.run(['sylph', 'sketch', '-t', '1', '-g']
+                   + [os.path.join(gdir, f) for f in sorted(os.listdir(gdir))]
+                   + ['-o', os.path.join(db, 'database')],
+                   check=True, stdout=subprocess.DEVNULL,
+                   stderr=subprocess.DEVNULL)
+    with gzip.open(os.path.join(db, 'taxonomy.tsv.gz'), 'wt') as fh:
+        fh.write('GCF_000001.1\t' + _TAXONOMY['RS_GCF_4'] + '\n')
+        fh.write('GCF_000002.1\t' + _TAXONOMY['RS_GCF_1'] + '\n')
+    rdir = os.path.join(directory, 'reads')
+    os.mkdir(rdir)
+    _write_reads(os.path.join(rdir, 'sample-1'), rng, genomes['GCF_000001.1'], 4000)
+    _write_reads(os.path.join(rdir, 'sample-2'), rng,
+                 genomes['GCF_000001.1'] + genomes['GCF_000002.1'], 4000)
+    _write_reads(os.path.join(rdir, 'sample-3'), rng, other, 4000)
+    manifest = os.path.join(directory, 'manifest.tsv')
+    with open(manifest, 'w') as fh:
+        fh.write('sample-id\tforward-absolute-filepath\treverse-absolute-filepath\n')
+        for s in ['sample-1', 'sample-2', 'sample-3']:
+            fh.write(f'{s}\t{rdir}/{s}_R1.fastq.gz\t{rdir}/{s}_R2.fastq.gz\n')
+    return db, manifest
+
+
+_SYLPH_DIR = None
+
+
+def _sylph_data():
+    global _SYLPH_DIR
+    if _SYLPH_DIR is None:
+        _SYLPH_DIR = tempfile.mkdtemp(prefix='la-confluence-sylph-')
+        synthetic_sylph_data(_SYLPH_DIR)
+    return _SYLPH_DIR
+
+
+def sylph_database_factory():
+    from la_confluence._sylph import SylphDatabaseDirFmt
+    directory = _sylph_data()
+    db = SylphDatabaseDirFmt()
+    for f in ['database.syldb', 'taxonomy.tsv.gz']:
+        shutil.copy(os.path.join(directory, 'db', f), os.path.join(str(db), f))
+    return Artifact.import_data('SylphDatabase', db)
+
+
+def paired_reads_factory():
+    directory = _sylph_data()
+    return Artifact.import_data('SampleData[PairedEndSequencesWithQuality]',
+                                os.path.join(directory, 'manifest.tsv'),
+                                'PairedEndFastqManifestPhred33V2')
+
+
+def profile_reads_example(use):
+    reads = use.init_artifact('reads', paired_reads_factory)
+    database = use.init_artifact('sylph-database', sylph_database_factory)
+    use.action(
+        use.UsageAction('confluence', 'profile_reads'),
+        use.UsageInputs(reads=reads, database=database, threads=1),
+        use.UsageOutputNames(taxonomic_abundance='sylph-taxonomic-abundance',
+                             sequence_abundance='sylph-sequence-abundance',
+                             taxonomy='sylph-taxonomy', stats='sylph-stats'),
     )
