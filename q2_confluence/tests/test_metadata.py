@@ -11,7 +11,7 @@ import unittest
 import pandas as pd
 import qiime2
 
-from la_confluence._metadata import merge_metadata
+from q2_confluence._metadata import merge_metadata
 
 
 def _md(rows, **cols):

@@ -13,7 +13,7 @@ import skbio
 
 from q2_types.tree import NewickFormat
 
-from la_confluence._tree import collapse_tree, gtdb_tree_collapse
+from q2_confluence._tree import collapse_tree, gtdb_tree_collapse
 
 
 def _tree(newick):

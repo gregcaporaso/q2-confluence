@@ -16,7 +16,7 @@ import qiime2
 import q2templates
 from q2templates.reports import matryoshka_template
 
-_ASSETS = importlib.resources.files('la_confluence') / 'assets'
+_ASSETS = importlib.resources.files('q2_confluence') / 'assets'
 EPS = 1e-9
 
 

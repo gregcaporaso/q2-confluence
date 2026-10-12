@@ -14,7 +14,7 @@ import pandas as pd
 import qiime2
 import q2templates
 
-_ASSETS = importlib.resources.files('la_confluence') / 'assets'
+_ASSETS = importlib.resources.files('q2_confluence') / 'assets'
 
 
 def summarize_inputs(output_dir: str, tables: biom.Table,

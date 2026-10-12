@@ -31,14 +31,14 @@ jobs:
     - name: Set up Conda
       uses: qiime2-cutlery/setup-miniconda@v3
       with:
-        activate-environment: la-confluence-qiime2-dev
-        environment-file: environment-files/la-confluence-qiime2-dev.yml
+        activate-environment: q2-confluence-qiime2-dev
+        environment-file: environment-files/q2-confluence-qiime2-dev.yml
         auto-activate-base: false
 
     - name: Install plugin
       shell: bash -l {0}
       run: |
-        cd la-confluence
+        cd q2-confluence
         make install
 
     - name: Call info on the deployment
@@ -54,12 +54,12 @@ jobs:
     - name: Test plugin
       shell: bash -l {0}
       run: |
-        cd la-confluence
+        cd q2-confluence
         make test
 
     - name: Lint plugin
       shell: bash -l {0}
       run: |
-        cd la-confluence
+        cd q2-confluence
         flake8
         q2lint

@@ -9,7 +9,7 @@ build:
     python: "mambaforge-latest"
   jobs:
     create_environment:
-      - conda env create -p .env/ --file environment-files/la-confluence-qiime2-dev.yml
+      - conda env create -p .env/ --file environment-files/q2-confluence-qiime2-dev.yml
     build:
       html:
         - PATH=$(pwd)/.env/bin/:$PATH pip install .
@@ -19,4 +19,4 @@ build:
         - cp -a docs/_build/* $READTHEDOCS_OUTPUT/
 
 conda:
-  environment: environment-files/la-confluence-qiime2-dev.yml
+  environment: environment-files/q2-confluence-qiime2-dev.yml

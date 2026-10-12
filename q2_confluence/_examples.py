@@ -302,13 +302,13 @@ _SYLPH_DIR = None
 def _sylph_data():
     global _SYLPH_DIR
     if _SYLPH_DIR is None:
-        _SYLPH_DIR = tempfile.mkdtemp(prefix='la-confluence-sylph-')
+        _SYLPH_DIR = tempfile.mkdtemp(prefix='q2-confluence-sylph-')
         synthetic_sylph_data(_SYLPH_DIR)
     return _SYLPH_DIR
 
 
 def sylph_database_factory():
-    from la_confluence._sylph import SylphDatabaseDirFmt
+    from q2_confluence._sylph import SylphDatabaseDirFmt
     directory = _sylph_data()
     db = SylphDatabaseDirFmt()
     for f in ['database.syldb', 'taxonomy.tsv.gz']:

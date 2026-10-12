@@ -20,7 +20,7 @@ dev: all
 # Documentation (q2doc + MyST, the gut-to-soil-tutorial layout). Run after
 # `q2doc refresh-cache` in an environment where the plugin is installed.
 html:
-	cp environment-files/la-confluence-qiime2-dev.yml docs/_static/environment.yml
+	cp environment-files/q2-confluence-qiime2-dev.yml docs/_static/environment.yml
 	cd docs && Q2DOC_BASE_COMMAND='qiime' jupyter book build --html
 
 serve:

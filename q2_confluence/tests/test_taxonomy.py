@@ -8,7 +8,7 @@
 
 import unittest
 
-from la_confluence._taxonomy import collapsed_name, is_named
+from q2_confluence._taxonomy import collapsed_name, is_named
 
 
 class CollapsedNameTests(unittest.TestCase):

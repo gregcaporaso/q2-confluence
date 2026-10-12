@@ -11,7 +11,7 @@ import pandas as pd
 import qiime2
 from qiime2.plugin.testing import TestPluginBase
 
-from la_confluence import _examples as ex
+from q2_confluence import _examples as ex
 
 BLAUTIA = ('d__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;'
            'f__Lachnospiraceae;g__Blautia')
@@ -20,7 +20,7 @@ BACILLUS = ('d__Bacteria;p__Bacillota;c__Bacilli;o__Bacillales;f__Bacillaceae;'
 
 
 class IntegrateTests(TestPluginBase):
-    package = 'la_confluence.tests'
+    package = 'q2_confluence.tests'
 
     def setUp(self):
         super().setUp()

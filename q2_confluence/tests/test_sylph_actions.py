@@ -16,12 +16,12 @@ import pandas as pd
 import qiime2
 from qiime2.plugin.testing import TestPluginBase
 
-from la_confluence import _examples as ex
-from la_confluence._sylph import SylphDatabaseDirFmt
+from q2_confluence import _examples as ex
+from q2_confluence._sylph import SylphDatabaseDirFmt
 
 
 class ProfileReadsTests(TestPluginBase):
-    package = 'la_confluence.tests'
+    package = 'q2_confluence.tests'
 
     def test_profile(self):
         reads = ex.paired_reads_factory()
@@ -49,15 +49,15 @@ class ProfileReadsTests(TestPluginBase):
 
 
 class FetchSylphDatabaseTests(TestPluginBase):
-    package = 'la_confluence.tests'
+    package = 'q2_confluence.tests'
 
     def test_fetch_from_local_urls(self):
         directory = ex._sylph_data()
         db = os.path.join(directory, 'db', 'database.syldb')
         tax = os.path.join(directory, 'db', 'taxonomy.tsv.gz')
-        with mock.patch('la_confluence._sylph._database_url',
+        with mock.patch('q2_confluence._sylph._database_url',
                         return_value='file://' + db), \
-                mock.patch('la_confluence._sylph._taxonomy_url',
+                mock.patch('q2_confluence._sylph._taxonomy_url',
                            return_value='file://' + tax):
             database, = self.plugin.methods['fetch_sylph_database']('232')
         fmt = database.view(SylphDatabaseDirFmt)
@@ -66,14 +66,14 @@ class FetchSylphDatabaseTests(TestPluginBase):
                          os.path.getsize(db))
 
     def test_real_urls(self):
-        from la_confluence._sylph import _database_url, _taxonomy_url
+        from q2_confluence._sylph import _database_url, _taxonomy_url
         self.assertEqual(_database_url('232'), 'http://faust.compbio.cs.cmu.edu/'
                          'sylph-stuff/gtdb-r232-c200-dbv2.syl2db')
         self.assertTrue(_taxonomy_url('226').endswith('gtdb_r226_metadata.tsv.gz'))
 
 
 class SylphDatabaseFormatTests(TestPluginBase):
-    package = 'la_confluence.tests'
+    package = 'q2_confluence.tests'
 
     def test_validation(self):
         with tempfile.TemporaryDirectory() as d:

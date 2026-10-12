@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import qiime2
 
-from la_confluence._inputs import summarize_inputs
+from q2_confluence._inputs import summarize_inputs
 
 
 class SummarizeInputsTests(unittest.TestCase):

@@ -11,7 +11,7 @@ from qiime2.plugin.testing import TestPluginBase
 
 class ExamplesTests(TestPluginBase):
     """Run every usage example registered on the plugin's actions."""
-    package = 'la_confluence.tests'
+    package = 'q2_confluence.tests'
 
     def test_examples(self):
         self.execute_examples()

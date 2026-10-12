@@ -7,7 +7,7 @@ metagenome data, GTDB r232), with one-line captions. Data download links are
 placeholders until the tutorial subset is published. -->
 
 Stock QIIME 2 and MOSHPIT actions prepare each side; `confluence` actions start at the reference tree.
-Commands assume a working directory with `16S/`, `wgs/` and `reference/` subdirectories and the `la-confluence` environment active.
+Commands assume a working directory with `16S/`, `wgs/` and `reference/` subdirectories and the `q2-confluence` environment active.
 
 ## Reference artifacts (once per GTDB release)
 

@@ -10,7 +10,7 @@ import os
 import tempfile
 import unittest
 
-from la_confluence._sylph import accession, profiles_to_artifacts, read_sylphmpa
+from q2_confluence._sylph import accession, profiles_to_artifacts, read_sylphmpa
 
 LINEAGE = ('d__Bacteria|p__Bacillota_A|c__Clostridia|o__Lachnospirales|'
            'f__Lachnospiraceae|g__Blautia')

@@ -17,31 +17,31 @@ from q2_sample_classifier import ClassifierPredictions
 from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
 
-from la_confluence import __version__
-from la_confluence._examples import (frequency_one_million,
+from q2_confluence import __version__
+from q2_confluence._examples import (frequency_one_million,
                                      gtdb_tree_collapse_genus,
                                      integrate_at_genus,
                                      merge_metadata_union,
                                      paired_report_example,
                                      profile_reads_example,
                                      summarize_inputs_two_studies)
-from la_confluence._inputs import summarize_inputs
-from la_confluence._integrate import integrate
-from la_confluence._metadata import merge_metadata
-from la_confluence._report import paired_report, summarize_paired_features
-from la_confluence._sylph import (SylphDatabase, SylphDatabaseDirFmt, SylphDbFormat,
+from q2_confluence._inputs import summarize_inputs
+from q2_confluence._integrate import integrate
+from q2_confluence._metadata import merge_metadata
+from q2_confluence._report import paired_report, summarize_paired_features
+from q2_confluence._sylph import (SylphDatabase, SylphDatabaseDirFmt, SylphDbFormat,
                                   SylphTaxonomyFormat, fetch_sylph_database,
                                   profile_reads)
-from la_confluence._table import frequency
-from la_confluence._tree import gtdb_tree_collapse
+from q2_confluence._table import frequency
+from q2_confluence._tree import gtdb_tree_collapse
 
-citations = Citations.load("citations.bib", package="la_confluence")
+citations = Citations.load("citations.bib", package="q2_confluence")
 
 plugin = Plugin(
     name="confluence",
     version=__version__,
-    website="https://github.com/gregcaporaso/la-confluence",
-    package="la_confluence",
+    website="https://github.com/gregcaporaso/q2-confluence",
+    package="q2_confluence",
     description=("Integrate 16S rRNA amplicon and shotgun metagenome taxonomic "
                  "profiles on one GTDB release: collapse each profile to a chosen "
                  "taxonomic level, merge the studies into one feature table with "

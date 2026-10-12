@@ -1,5 +1,5 @@
 [project]
-name = "la-confluence"
+name = "q2-confluence"
 authors = [
     { name = "Greg Caporaso" }
 ]
@@ -9,10 +9,10 @@ license = {file = "LICENSE"}
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/gregcaporaso/la-confluence"
+Homepage = "https://github.com/gregcaporaso/q2-confluence"
 
 [project.entry-points.'qiime2.plugins']
-"la-confluence" = "la_confluence.plugin_setup:plugin"
+"q2-confluence" = "q2_confluence.plugin_setup:plugin"
 
 [build-system]
 requires = [
@@ -36,7 +36,7 @@ dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
 distance-dirty = "{base_version}+{distance}.{vcs}{rev}.dirty"
 
 [tool.versioningit.write]
-file = "la_confluence/_version.py"
+file = "q2_confluence/_version.py"
 
 [tool.versioningit]
 default-version = "0.0.dev0"
@@ -46,7 +46,7 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["la_confluence*"]
+include = ["q2_confluence*"]
 
 [tool.setuptools.package-data]
-la_confluence = ["**/*"]
+q2_confluence = ["**/*"]

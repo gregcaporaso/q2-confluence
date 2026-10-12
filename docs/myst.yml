@@ -1,9 +1,9 @@
 # See docs at: https://mystmd.org/guide/frontmatter
 version: 1
 project:
-  id: la-confluence
-  title: la-confluence
-  github: https://github.com/gregcaporaso/la-confluence/
+  id: q2-confluence
+  title: q2-confluence
+  github: https://github.com/gregcaporaso/q2-confluence/
 
   references:
     rachis-glossary-target: https://news.rachis.org/en/latest/

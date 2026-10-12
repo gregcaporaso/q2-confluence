@@ -12,7 +12,7 @@ import biom
 import numpy as np
 import numpy.testing as npt
 
-from la_confluence._table import frequency
+from q2_confluence._table import frequency
 
 
 class FrequencyTests(unittest.TestCase):
