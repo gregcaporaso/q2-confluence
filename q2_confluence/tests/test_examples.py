@@ -14,4 +14,5 @@ class ExamplesTests(TestPluginBase):
     package = 'q2_confluence.tests'
 
     def test_examples(self):
+        # TODO: this is AI-generated code; human review pending
         self.execute_examples()

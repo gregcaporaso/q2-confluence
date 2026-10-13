@@ -22,6 +22,7 @@ EPS = 1e-9
 
 def paired_report(ctx, table, tree, metadata, n_boots=10, permutations=999,
                   cv=10, n_estimators=500, random_state=None, n_jobs=1):
+    # TODO: this is AI-generated code; human review pending
     """How far apart are the sources, on the samples every source profiled?
 
     `table` and `metadata` come from integrate (metadata columns
@@ -87,6 +88,7 @@ def paired_report(ctx, table, tree, metadata, n_boots=10, permutations=999,
 def summarize_paired_features(output_dir: str, table: biom.Table,
                               importance: pd.DataFrame, predictions: pd.Series,
                               metadata: qiime2.Metadata) -> None:
+    # TODO: this is AI-generated code; human review pending
     """Importance next to each source's abundance and prevalence per feature."""
     md = metadata.to_dataframe()
     source = md['source']

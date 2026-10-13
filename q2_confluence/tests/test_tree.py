@@ -13,10 +13,11 @@ import skbio
 
 from q2_types.tree import NewickFormat
 
-from q2_confluence._tree import collapse_tree, gtdb_tree_collapse
+from q2_confluence._tree import _collapse_tree, gtdb_tree_collapse
 
 
 def _tree(newick):
+    # TODO: this is AI-generated code; human review pending
     return skbio.TreeNode.read([newick], convert_underscores=False)
 
 
@@ -24,6 +25,7 @@ class CollapseTreeTests(unittest.TestCase):
 
     def setUp(self):
         # GTDB-style: bootstrap:taxon labels on internal nodes, genome tips.
+        # TODO: this is AI-generated code; human review pending
         self.tree = _tree(
             "(((g1:0.1,g2:0.3)'100.0:g__A':0.5,g3:0.4)'90.0:f__F':1.0,"
             "(g4:0.2,g5:0.2)'95.0:g__C':2.0)root;")
@@ -36,7 +38,8 @@ class CollapseTreeTests(unittest.TestCase):
         })
 
     def test_genus(self):
-        out = collapse_tree(self.tree, self.taxonomy, 6)
+        # TODO: this is AI-generated code; human review pending
+        out = _collapse_tree(self.tree, self.taxonomy, 6)
         tips = {t.name: t for t in out.tips()}
         self.assertEqual(set(tips), {'d__B;p__P;c__C;o__O;f__F;g__A',
                                      'd__B;p__P;c__C;o__O;f__F;g__B',
@@ -49,52 +52,60 @@ class CollapseTreeTests(unittest.TestCase):
         self.assertTrue(all(n.name is None for n in out.non_tips(include_self=True)))
 
     def test_species_is_a_rename(self):
-        out = collapse_tree(self.tree, self.taxonomy, 7)
+        # TODO: this is AI-generated code; human review pending
+        out = _collapse_tree(self.tree, self.taxonomy, 7)
         self.assertEqual(out.count(tips=True), 5)
         self.assertIn('d__B;p__P;c__C;o__O;f__F;g__A;s__A one',
                       {t.name for t in out.tips()})
 
     def test_family_and_root_collapse(self):
-        out = collapse_tree(self.tree, self.taxonomy, 5)
+        # TODO: this is AI-generated code; human review pending
+        out = _collapse_tree(self.tree, self.taxonomy, 5)
         self.assertEqual({t.name for t in out.tips()},
                          {'d__B;p__P;c__C;o__O;f__F', 'd__B;p__P;c__C;o__O;f__G'})
         # a level that leaves one taxon collapses the root onto it
-        out = collapse_tree(self.tree, self.taxonomy, 1)
+        out = _collapse_tree(self.tree, self.taxonomy, 1)
         self.assertTrue(out.is_tip())
         self.assertEqual(out.name, 'd__B')
 
     def test_input_tree_unchanged(self):
+        # TODO: this is AI-generated code; human review pending
         before = str(self.tree)
-        collapse_tree(self.tree, self.taxonomy, 6)
+        _collapse_tree(self.tree, self.taxonomy, 6)
         self.assertEqual(str(self.tree), before)
 
     def test_not_monophyletic(self):
         # g2 and g3 as one genus: their common ancestor also holds g1
+        # TODO: this is AI-generated code; human review pending
         taxonomy = self.taxonomy.copy()
         taxonomy['g2'] = 'd__B;p__P;c__C;o__O;f__F;g__B;s__B two'
         with self.assertRaisesRegex(ValueError, 'not monophyletic'):
-            collapse_tree(self.tree, taxonomy, 6)
+            _collapse_tree(self.tree, taxonomy, 6)
 
     def test_missing_tip(self):
+        # TODO: this is AI-generated code; human review pending
         with self.assertRaisesRegex(ValueError, 'missing from the taxonomy'):
-            collapse_tree(self.tree, self.taxonomy.drop('g5'), 6)
+            _collapse_tree(self.tree, self.taxonomy.drop('g5'), 6)
 
     def test_unnamed_at_level(self):
+        # TODO: this is AI-generated code; human review pending
         taxonomy = self.taxonomy.copy()
         taxonomy['g3'] = 'd__B;p__P;c__C;o__O;f__F;g__;s__'
         with self.assertRaisesRegex(ValueError, 'no name at level 6'):
-            collapse_tree(self.tree, taxonomy, 6)
+            _collapse_tree(self.tree, taxonomy, 6)
 
     def test_bad_level(self):
+        # TODO: this is AI-generated code; human review pending
         with self.assertRaisesRegex(ValueError, 'at least 1'):
-            collapse_tree(self.tree, self.taxonomy, 0)
+            _collapse_tree(self.tree, self.taxonomy, 0)
         with self.assertRaisesRegex(ValueError, 'exceeds'):
-            collapse_tree(self.tree, self.taxonomy, 8)
+            _collapse_tree(self.tree, self.taxonomy, 8)
 
 
 class GtdbTreeCollapseTests(unittest.TestCase):
 
     def test_underscores_kept_and_names_round_trip(self):
+        # TODO: this is AI-generated code; human review pending
         fmt = NewickFormat()
         with fmt.open() as fh:
             fh.write("((RS_GCF_1:0.1,RS_GCF_2:0.3)'100.0:g__A':0.5,GB_GCA_3:0.4);")

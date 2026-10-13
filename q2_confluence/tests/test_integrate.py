@@ -23,19 +23,21 @@ class IntegrateTests(TestPluginBase):
     package = 'q2_confluence.tests'
 
     def setUp(self):
+        # TODO: this is AI-generated code; human review pending
         super().setUp()
         self.integrate = self.plugin.pipelines['integrate']
         collapse = self.plugin.methods['gtdb_tree_collapse']
-        self.genus_tree, = collapse(ex.reference_tree_factory(),
-                                    ex.reference_taxonomy_factory(), 6)
-        self.tables = {'amplicon': ex.amplicon_table_three_asvs_factory(),
-                       'metagenome': ex.metagenome_counts_factory()}
-        self.taxonomies = {'amplicon': ex.amplicon_taxonomy_factory(),
-                           'metagenome': ex.metagenome_taxonomy_factory()}
-        self.metadata = {'amplicon': ex.amplicon_metadata_factory(),
-                         'metagenome': ex.metagenome_metadata_factory()}
+        self.genus_tree, = collapse(ex._reference_tree_factory(),
+                                    ex._reference_taxonomy_factory(), 6)
+        self.tables = {'amplicon': ex._amplicon_table_three_asvs_factory(),
+                       'metagenome': ex._metagenome_counts_factory()}
+        self.taxonomies = {'amplicon': ex._amplicon_taxonomy_factory(),
+                           'metagenome': ex._metagenome_taxonomy_factory()}
+        self.metadata = {'amplicon': ex._amplicon_metadata_factory(),
+                         'metagenome': ex._metagenome_metadata_factory()}
 
     def test_genus(self):
+        # TODO: this is AI-generated code; human review pending
         rel, counts, taxonomy, md = self.integrate(
             self.tables, self.taxonomies, self.genus_tree, 6, 1000,
             metadata=self.metadata)
@@ -65,6 +67,7 @@ class IntegrateTests(TestPluginBase):
         self.assertEqual(md.loc['sample-2-metagenome', 'unassigned-share'], 0)
 
     def test_without_metadata(self):
+        # TODO: this is AI-generated code; human review pending
         _, _, _, md = self.integrate(self.tables, self.taxonomies,
                                      self.genus_tree, 6, 1000)
         cols = md.view(qiime2.Metadata).to_dataframe().columns
@@ -72,12 +75,14 @@ class IntegrateTests(TestPluginBase):
                          ['original-sample-id', 'source', 'unassigned-share'])
 
     def test_tree_at_another_level(self):
+        # TODO: this is AI-generated code; human review pending
         family_tree, = self.plugin.methods['gtdb_tree_collapse'](
-            ex.reference_tree_factory(), ex.reference_taxonomy_factory(), 5)
+            ex._reference_tree_factory(), ex._reference_taxonomy_factory(), 5)
         with self.assertRaisesRegex(ValueError, 'not tips of the tree'):
             self.integrate(self.tables, self.taxonomies, family_tree, 6, 1000)
 
     def test_key_mismatch(self):
+        # TODO: this is AI-generated code; human review pending
         with self.assertRaisesRegex(ValueError, 'same keys'):
             self.integrate(self.tables, {'amplicon': self.taxonomies['amplicon']},
                            self.genus_tree, 6, 1000)

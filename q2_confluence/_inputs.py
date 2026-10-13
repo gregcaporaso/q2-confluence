@@ -19,6 +19,7 @@ _ASSETS = importlib.resources.files('q2_confluence') / 'assets'
 
 def summarize_inputs(output_dir: str, tables: biom.Table,
                      metadata: qiime2.Metadata = None) -> None:
+    # TODO: this is AI-generated code; human review pending
     """Which sample IDs do the inputs share? `tables` and `metadata` are
     collections (dicts keyed by label); the labels must not collide."""
     ids = {f'table-{k}': set(t.ids()) for k, t in tables.items()}

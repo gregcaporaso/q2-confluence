@@ -18,13 +18,13 @@ from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
 
 from q2_confluence import __version__
-from q2_confluence._examples import (frequency_one_million,
-                                     gtdb_tree_collapse_genus,
-                                     integrate_at_genus,
-                                     merge_metadata_union,
-                                     paired_report_example,
-                                     profile_reads_example,
-                                     summarize_inputs_two_studies)
+from q2_confluence._examples import (_frequency_one_million,
+                                     _gtdb_tree_collapse_genus,
+                                     _integrate_at_genus,
+                                     _merge_metadata_union,
+                                     _paired_report_example,
+                                     _profile_reads_example,
+                                     _summarize_inputs_two_studies)
 from q2_confluence._inputs import summarize_inputs
 from q2_confluence._integrate import integrate
 from q2_confluence._metadata import merge_metadata
@@ -80,9 +80,10 @@ plugin.methods.register_function(
         'taxon has no name at the level, or a group is not monophyletic. Run '
         'once per reference release and level; UniFrac tolerates tips absent '
         'from a table, so the same tree serves every table collapsed to that '
-        'level. Provisional: expected to move to q2-phylogeny.'),
+        'level. Provisional: expected to move to q2-phylogeny.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     deprecated=True,
-    examples={'Collapse a GTDB tree to genus': gtdb_tree_collapse_genus},
+    examples={'Collapse a GTDB tree to genus': _gtdb_tree_collapse_genus},
 )
 
 plugin.methods.register_function(
@@ -105,9 +106,10 @@ plugin.methods.register_function(
         'the sample classifier. This action multiplies each sample by one '
         'total and rounds, and says so: unlike sapienns frequency, the total '
         'is applied to proportions, not percentages. Provisional: expected to '
-        'move to q2-feature-table.'),
+        'move to q2-feature-table.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     deprecated=True,
-    examples={'Scale to one million per sample': frequency_one_million},
+    examples={'Scale to one million per sample': _frequency_one_million},
 )
 
 plugin.visualizers.register_function(
@@ -126,8 +128,9 @@ plugin.visualizers.register_function(
         'holds, how many sample IDs each pair shares, and how many IDs fall '
         'into each combination of inputs, with the per-sample membership as a '
         'TSV. Integration pairs samples by identical IDs, so this shows which '
-        'samples will pair and which metadata rows have no table.'),
-    examples={'Two studies': summarize_inputs_two_studies},
+        'samples will pair and which metadata rows have no table.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+    examples={'Two studies': _summarize_inputs_two_studies},
 )
 
 plugin.methods.register_function(
@@ -148,8 +151,9 @@ plugin.methods.register_function(
         'Outer or inner join on sample ID over any number of metadata inputs. '
         'Columns with the same name are combined; a sample with two different '
         'values in such a column is an error. Unlike metadata merge, this takes '
-        'a collection and offers the union.'),
-    examples={'Union of two studies': merge_metadata_union},
+        'a collection and offers the union.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+    examples={'Union of two studies': _merge_metadata_union},
 )
 
 plugin.pipelines.register_function(
@@ -191,8 +195,9 @@ plugin.pipelines.register_function(
         'with the key. Merge, check every feature is a tip of the tree, rescale '
         'to counts, derive the taxonomy from the feature IDs, and build the '
         'metadata. Samples with the same ID in two sources are a pair, which '
-        'paired-report uses.'),
-    examples={'Amplicon and metagenome at genus': integrate_at_genus},
+        'paired-report uses.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+    examples={'Amplicon and metagenome at genus': _integrate_at_genus},
 )
 
 plugin.register_formats(SylphDbFormat, SylphTaxonomyFormat, SylphDatabaseDirFmt)
@@ -217,7 +222,8 @@ plugin.methods.register_function(
         'Downloads the sylph authors\' pre-built database of the GTDB species '
         'representatives and the matching sylph-tax taxonomy metadata from '
         'Zenodo. No checksum is published for the database. Provisional: '
-        'expected to move to MOSHPIT.'),
+        'expected to move to MOSHPIT.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     deprecated=True,
 )
 
@@ -255,10 +261,11 @@ plugin.methods.register_function(
         'sylph sketch on every sample, sylph profile against the database, and '
         'sylph-tax taxprof with the database\'s taxonomy, parsed into '
         'genome-keyed tables. A sample in which sylph detects nothing keeps an '
-        'all-zero column. Provisional: expected to move to MOSHPIT.'),
+        'all-zero column. Provisional: expected to move to MOSHPIT.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     deprecated=True,
     examples={'Profile three samples against a two-genome database':
-              profile_reads_example},
+              _profile_reads_example},
 )
 
 plugin.visualizers.register_function(
@@ -280,7 +287,8 @@ plugin.visualizers.register_function(
         'relative abundance and prevalence, the log2 ratio between the first '
         'two sources, and whether the feature is seen by one source only; '
         'importance shares by direction and the cross-validated accuracy. '
-        'The full table is downloadable as a TSV.'),
+        'The full table is downloadable as a TSV.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
 )
 
 plugin.pipelines.register_function(
@@ -321,6 +329,7 @@ plugin.pipelines.register_function(
         'q2-boots core-metrics with the tree at the smallest sample total, '
         'PERMANOVA by source on every distance matrix, a random forest '
         'classifying source with nested cross-validation, and the per-feature '
-        'summary, collated into one report.'),
-    examples={'Two sources on six paired samples': paired_report_example},
+        'summary, collated into one report.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+    examples={'Two sources on six paired samples': _paired_report_example},
 )

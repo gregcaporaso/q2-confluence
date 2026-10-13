@@ -12,7 +12,8 @@ import re
 _UNNAMED = re.compile(r'^([a-z]__)?(__)?$')
 
 
-def collapsed_name(taxon: str, level: int, n_ranks: int) -> str:
+def _collapsed_name(taxon: str, level: int, n_ranks: int) -> str:
+    # TODO: this is AI-generated code; human review pending
     """The feature ID q2-taxa's `collapse` gives a taxon at `level`.
 
     Tokens are stripped, the string is padded with '__' to `n_ranks`
@@ -25,6 +26,7 @@ def collapsed_name(taxon: str, level: int, n_ranks: int) -> str:
     return ';'.join(tokens[:level])
 
 
-def is_named(name: str) -> bool:
+def _is_named(name: str) -> bool:
+    # TODO: this is AI-generated code; human review pending
     """True when the last rank token of a collapsed name carries a name."""
     return _UNNAMED.match(name.rsplit(';', 1)[-1].strip()) is None

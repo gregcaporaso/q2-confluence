@@ -13,11 +13,12 @@ import pandas as pd
 import skbio
 from q2_types.tree import NewickFormat
 
-from ._taxonomy import collapsed_name, is_named
+from ._taxonomy import _collapsed_name, _is_named
 
 
 def gtdb_tree_collapse(tree: NewickFormat, taxonomy: pd.Series,
                        level: int) -> skbio.TreeNode:
+    # TODO: this is AI-generated code; human review pending
     """The registered action: read the Newick file with underscores kept.
 
     q2-types' default view converts unquoted underscores to spaces (Newick
@@ -27,11 +28,12 @@ def gtdb_tree_collapse(tree: NewickFormat, taxonomy: pd.Series,
     """
     tree = skbio.TreeNode.read(str(tree), format='newick',
                                convert_underscores=False, verify=False)
-    return collapse_tree(tree, taxonomy, level)
+    return _collapse_tree(tree, taxonomy, level)
 
 
-def collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
-                  level: int) -> skbio.TreeNode:
+def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
+                   level: int) -> skbio.TreeNode:
+    # TODO: this is AI-generated code; human review pending
     """Collapse a reference tree to one tip per taxon at `level`.
 
     Every tip must be in `taxonomy`. Tips are grouped by their taxonomy
@@ -57,8 +59,8 @@ def collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
                          f'taxonomy, e.g. {missing[:3]}')
     groups = defaultdict(list)
     for tip in tips:
-        groups[collapsed_name(taxonomy[tip.name], level, n_ranks)].append(tip)
-    unnamed = [n for n in groups if not is_named(n)]
+        groups[_collapsed_name(taxonomy[tip.name], level, n_ranks)].append(tip)
+    unnamed = [n for n in groups if not _is_named(n)]
     if unnamed:
         raise ValueError(f'{len(unnamed)} taxa have no name at level {level}, '
                          f'e.g. {unnamed[:3]}')

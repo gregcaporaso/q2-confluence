@@ -11,6 +11,7 @@ import qiime2
 
 def merge_metadata(metadata: qiime2.Metadata,
                    how: str = 'union') -> qiime2.Metadata:
+    # TODO: this is AI-generated code; human review pending
     """Merge the metadata of several studies into one.
 
     `metadata` is a collection (dict keyed by label). With 'union' every ID
@@ -31,6 +32,7 @@ def merge_metadata(metadata: qiime2.Metadata,
 
 
 def _merge_frames(frames):
+    # TODO: this is AI-generated code; human review pending
     """Outer join on the index; shared columns combined, conflicts rejected."""
     out = frames[0]
     for f in frames[1:]:

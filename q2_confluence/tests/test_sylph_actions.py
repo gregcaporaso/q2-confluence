@@ -24,8 +24,9 @@ class ProfileReadsTests(TestPluginBase):
     package = 'q2_confluence.tests'
 
     def test_profile(self):
-        reads = ex.paired_reads_factory()
-        database = ex.sylph_database_factory()
+        # TODO: this is AI-generated code; human review pending
+        reads = ex._paired_reads_factory()
+        database = ex._sylph_database_factory()
         rel, seq, tax, stats = self.plugin.methods['profile_reads'](
             reads, database, threads=1)
         rel = rel.view(biom.Table)
@@ -52,6 +53,7 @@ class FetchSylphDatabaseTests(TestPluginBase):
     package = 'q2_confluence.tests'
 
     def test_fetch_from_local_urls(self):
+        # TODO: this is AI-generated code; human review pending
         directory = ex._sylph_data()
         db = os.path.join(directory, 'db', 'database.syldb')
         tax = os.path.join(directory, 'db', 'taxonomy.tsv.gz')
@@ -66,6 +68,7 @@ class FetchSylphDatabaseTests(TestPluginBase):
                          os.path.getsize(db))
 
     def test_real_urls(self):
+        # TODO: this is AI-generated code; human review pending
         from q2_confluence._sylph import _database_url, _taxonomy_url
         self.assertEqual(_database_url('232'), 'http://faust.compbio.cs.cmu.edu/'
                          'sylph-stuff/gtdb-r232-c200-dbv2.syl2db')
@@ -76,6 +79,7 @@ class SylphDatabaseFormatTests(TestPluginBase):
     package = 'q2_confluence.tests'
 
     def test_validation(self):
+        # TODO: this is AI-generated code; human review pending
         with tempfile.TemporaryDirectory() as d:
             open(os.path.join(d, 'database.syldb'), 'wb').close()
             with gzip.open(os.path.join(d, 'taxonomy.tsv.gz'), 'wt') as fh:

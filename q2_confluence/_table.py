@@ -11,6 +11,7 @@ import numpy as np
 
 
 def frequency(table: biom.Table, total: int) -> biom.Table:
+    # TODO: this is AI-generated code; human review pending
     """Turn proportions into counts: round(proportion * total) per sample.
 
     Every sample must sum to 1 (empty samples, summing to 0, pass through).

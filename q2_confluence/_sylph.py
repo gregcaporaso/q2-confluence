@@ -34,14 +34,16 @@ from q2_types.per_sample_sequences import SingleLanePerSamplePairedEndFastqDirFm
 RANKS = ('d__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__')
 
 
-def accession(label):
+def _accession(label):
+    # TODO: this is AI-generated code; human review pending
     """t__ label (a genome file name) -> accession, e.g. GCF_000227485.1."""
     name = label.split('/')[-1]
     m = re.match(r'^(GC[AF]_\d+\.\d+)', name)
     return m.group(1) if m else re.sub(r'\.(fa|fna|fasta)(\.gz)?$', '', name)
 
 
-def read_sylphmpa(path):
+def _read_sylphmpa(path):
+    # TODO: this is AI-generated code; human review pending
     """-> (sample id, DataFrame indexed by accession: Taxon, rel, seq, ani)."""
     with open(path) as fh:
         header = fh.readline()
@@ -58,7 +60,7 @@ def read_sylphmpa(path):
             continue
         if len(ranks) != 7 or any(not r.startswith(p) for r, p in zip(ranks, RANKS)):
             raise ValueError(f'{path}: unexpected clade string {clade!r}')
-        acc = accession(strain[3:])
+        acc = _accession(strain[3:])
         if acc in rows:
             raise ValueError(f'{path}: accession {acc} appears twice')
         rows[acc] = {'Taxon': ';'.join(ranks), 'rel': float(rel),
@@ -66,7 +68,8 @@ def read_sylphmpa(path):
     return sample, pd.DataFrame.from_dict(rows, orient='index')
 
 
-def profiles_to_artifacts(paths, samples=None):
+def _profiles_to_artifacts(paths, samples=None):
+    # TODO: this is AI-generated code; human review pending
     """-> (taxonomic table, sequence table, taxonomy Series, per-sample stats).
 
     `samples`, when given, is the full sample list: a sample with no
@@ -75,7 +78,7 @@ def profiles_to_artifacts(paths, samples=None):
     """
     per_sample, taxonomy, stats = {}, {}, []
     for path in sorted(paths):
-        sample, df = read_sylphmpa(path)
+        sample, df = _read_sylphmpa(path)
         if sample in per_sample:
             raise ValueError(f'sample {sample} appears twice')
         per_sample[sample] = df
@@ -94,7 +97,8 @@ def profiles_to_artifacts(paths, samples=None):
                           'median-ani': np.nan, 'unknown-share': 1.0})
     samples, features = sorted(per_sample), sorted(taxonomy)
 
-    def table(col, renormalize):
+    def _table(col, renormalize):
+        # TODO: this is AI-generated code; human review pending
         data = np.zeros((len(features), len(samples)))
         for j, s in enumerate(samples):
             v = per_sample[s][col].reindex(features).fillna(0.0).to_numpy() / 100
@@ -106,7 +110,7 @@ def profiles_to_artifacts(paths, samples=None):
     tax = pd.Series(taxonomy, name='Taxon').reindex(features)
     tax.index.name = 'Feature ID'
     md = pd.DataFrame(stats).set_index('sample-id').loc[samples]
-    return table('rel', False), table('seq', True), tax, md
+    return _table('rel', False), _table('seq', True), tax, md
 
 
 # --- database type ----------------------------------------------------------
@@ -118,6 +122,7 @@ class SylphDbFormat(model.BinaryFileFormat):
     """A sylph genome sketch database (.syldb or the two-stage .syl2db)."""
 
     def _validate_(self, level):
+        # TODO: this is AI-generated code; human review pending
         if os.path.getsize(str(self)) == 0:
             raise model.ValidationError('empty sylph database')
 
@@ -127,6 +132,7 @@ class SylphTaxonomyFormat(model.BinaryFileFormat):
     (genome accession, ;-separated taxonomy string)."""
 
     def _validate_(self, level):
+        # TODO: this is AI-generated code; human review pending
         with gzip.open(str(self), 'rt') as fh:
             first = fh.readline()
         if len(first.rstrip('\n').split('\t')) < 2:
@@ -139,9 +145,11 @@ class SylphDatabaseDirFmt(model.DirectoryFormat):
 
     @database.set_path_maker
     def _database_path(self, extension):
+        # TODO: this is AI-generated code; human review pending
         return f'database.{extension}'
 
     def database_path(self):
+        # TODO: this is AI-generated code; human review pending
         paths = [p for p in os.listdir(str(self))
                  if p in ('database.syldb', 'database.syl2db')]
         if len(paths) != 1:
@@ -152,23 +160,27 @@ class SylphDatabaseDirFmt(model.DirectoryFormat):
 # --- actions -----------------------------------------------------------------
 
 def _database_url(release):
+    # TODO: this is AI-generated code; human review pending
     return ('http://faust.compbio.cs.cmu.edu/sylph-stuff/'
             f'gtdb-r{release}-c200-dbv2.syl2db')
 
 
 def _taxonomy_url(release):
+    # TODO: this is AI-generated code; human review pending
     from sylph_tax.metadata_files import __metadata_file_urls__
     name = f'gtdb_r{release}_metadata.tsv.gz'
     return next(u for u in __metadata_file_urls__ if u.endswith('/' + name))
 
 
 def _download(url, path):
+    # TODO: this is AI-generated code; human review pending
     with urllib.request.urlopen(url) as r, open(path, 'wb') as fh:
         while chunk := r.read(1 << 20):
             fh.write(chunk)
 
 
 def fetch_sylph_database(release: str) -> SylphDatabaseDirFmt:
+    # TODO: this is AI-generated code; human review pending
     """The pre-built sylph database of the GTDB species representatives
     (one genome per species, sketched at c=200) and sylph-tax's taxonomy
     for the same release."""
@@ -182,6 +194,7 @@ def profile_reads(reads: SingleLanePerSamplePairedEndFastqDirFmt,
                   database: SylphDatabaseDirFmt, threads: int = 1,
                   estimate_unknown: bool = True
                   ) -> (biom.Table, biom.Table, pd.Series, qiime2.Metadata):
+    # TODO: this is AI-generated code; human review pending
     """sylph sketch, sylph profile, sylph-tax taxprof, then the parser."""
     manifest = reads.manifest.view(pd.DataFrame)
     samples = list(manifest.index)
@@ -209,10 +222,11 @@ def profile_reads(reads: SingleLanePerSamplePairedEndFastqDirFmt,
                   'SYLPH_TAXONOMY_CONFIG': os.path.join(work, 'config.json')})
         paths = [os.path.join(taxprof, f) for f in os.listdir(taxprof)
                  if f.endswith('.sylphmpa')]
-        rel, seq, tax, stats = profiles_to_artifacts(paths, samples)
+        rel, seq, tax, stats = _profiles_to_artifacts(paths, samples)
     return rel, seq, tax, qiime2.Metadata(stats)
 
 
 def _run(cmd, env=None):
+    # TODO: this is AI-generated code; human review pending
     subprocess.run(cmd, check=True, env=env, stdout=subprocess.DEVNULL,
                    stderr=subprocess.DEVNULL)

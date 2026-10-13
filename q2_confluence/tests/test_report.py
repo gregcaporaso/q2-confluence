@@ -20,18 +20,20 @@ class PairedReportTests(TestPluginBase):
     package = 'q2_confluence.tests'
 
     def setUp(self):
+        # TODO: this is AI-generated code; human review pending
         super().setUp()
         collapse = self.plugin.methods['gtdb_tree_collapse']
-        self.tree, = collapse(ex.reference_tree_factory(),
-                              ex.reference_taxonomy_factory(), 6)
+        self.tree, = collapse(ex._reference_tree_factory(),
+                              ex._reference_taxonomy_factory(), 6)
         _, self.table, _, self.metadata = self.plugin.pipelines['integrate'](
-            {'amplicon': ex.paired_amplicon_table_factory(),
-             'metagenome': ex.paired_metagenome_table_factory()},
-            {'amplicon': ex.paired_amplicon_taxonomy_factory(),
-             'metagenome': ex.paired_metagenome_taxonomy_factory()},
-            self.tree, 6, 1000, metadata={'study': ex.paired_metadata_factory()})
+            {'amplicon': ex._paired_amplicon_table_factory(),
+             'metagenome': ex._paired_metagenome_table_factory()},
+            {'amplicon': ex._paired_amplicon_taxonomy_factory(),
+             'metagenome': ex._paired_metagenome_taxonomy_factory()},
+            self.tree, 6, 1000, metadata={'study': ex._paired_metadata_factory()})
 
     def test_report(self):
+        # TODO: this is AI-generated code; human review pending
         report, dms, importance = self.plugin.pipelines['paired_report'](
             self.table, self.tree, self.metadata, n_boots=2, permutations=99,
             cv=3, n_estimators=50, random_state=1)
@@ -55,6 +57,7 @@ class PairedReportTests(TestPluginBase):
             self.assertEqual(df['prevalence-amplicon'].tolist(), [6, 6, 6])
 
     def test_unpaired_samples_dropped(self):
+        # TODO: this is AI-generated code; human review pending
         md = self.metadata.view(qiime2.Metadata).to_dataframe()
         md = md[md.index != 'sample-6-metagenome']   # sample-6 loses its pair
         metadata = qiime2.Artifact.import_data('ImmutableMetadata',
@@ -67,6 +70,7 @@ class PairedReportTests(TestPluginBase):
         self.assertNotIn('sample-6-amplicon', dm.ids)
 
     def test_too_few_pairs(self):
+        # TODO: this is AI-generated code; human review pending
         md = self.metadata.view(qiime2.Metadata).to_dataframe()
         keep = ~md.index.str.endswith('-metagenome')
         md = md[keep | (md.index == 'sample-1-metagenome')]
@@ -78,6 +82,7 @@ class PairedReportTests(TestPluginBase):
                 cv=3, n_estimators=50)
 
     def test_wrong_metadata(self):
-        md = ex.paired_metadata_factory()
+        # TODO: this is AI-generated code; human review pending
+        md = ex._paired_metadata_factory()
         with self.assertRaisesRegex(ValueError, 'no .original-sample-id. column'):
             self.plugin.pipelines['paired_report'](self.table, self.tree, md)

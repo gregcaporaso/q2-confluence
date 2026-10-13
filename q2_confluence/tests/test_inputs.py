@@ -21,6 +21,7 @@ from q2_confluence._inputs import summarize_inputs
 class SummarizeInputsTests(unittest.TestCase):
 
     def setUp(self):
+        # TODO: this is AI-generated code; human review pending
         self.t16s = biom.Table(np.ones((2, 3)), ['f1', 'f2'], ['s1', 's2', 's3'])
         self.tmg = biom.Table(np.ones((3, 2)), ['g1', 'g2', 'g3'], ['s2', 's3'])
         self.md = qiime2.Metadata(pd.DataFrame(
@@ -28,6 +29,7 @@ class SummarizeInputsTests(unittest.TestCase):
             index=pd.Index(['s1', 's2', 's3', 's4'], name='sample-id')))
 
     def test_page_and_membership(self):
+        # TODO: this is AI-generated code; human review pending
         with tempfile.TemporaryDirectory() as out:
             summarize_inputs(out, {'16s': self.t16s, 'mg': self.tmg},
                              {'study': self.md})
@@ -42,6 +44,7 @@ class SummarizeInputsTests(unittest.TestCase):
             self.assertEqual(m.loc['s2'].tolist(), [True, True, True])
 
     def test_tables_only(self):
+        # TODO: this is AI-generated code; human review pending
         with tempfile.TemporaryDirectory() as out:
             summarize_inputs(out, {'16s': self.t16s, 'mg': self.tmg})
             html = open(os.path.join(out, 'index.html')).read()

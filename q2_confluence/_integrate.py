@@ -12,10 +12,11 @@ import qiime2
 import skbio
 from q2_types.tree import NewickFormat
 
-from ._taxonomy import is_named
+from ._taxonomy import _is_named
 
 
 def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
+    # TODO: this is AI-generated code; human review pending
     """Collapse every table to `level`, drop what is unnamed there, merge.
 
     `tables` and `taxonomies` are collections with the same keys; `tree` is
@@ -44,7 +45,7 @@ def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
                               level=level)
         before = _sample_sums(collapsed)
         unnamed = [i for i in collapsed.view(biom.Table).ids(axis='observation')
-                   if not is_named(i)]
+                   if not _is_named(i)]
         kept = collapsed
         if unnamed:
             kept, = filter_features(table=collapsed, metadata=_ids(unnamed),
@@ -75,21 +76,25 @@ def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
 
 
 def _sample_sums(table):
+    # TODO: this is AI-generated code; human review pending
     t = table.view(biom.Table)
     return pd.Series(t.sum(axis='sample'), index=t.ids())
 
 
 def _ids(ids):
+    # TODO: this is AI-generated code; human review pending
     return qiime2.Metadata(pd.DataFrame(index=pd.Index(ids, name='feature-id')))
 
 
 def _column(mapping):
+    # TODO: this is AI-generated code; human review pending
     s = pd.Series(mapping, name='new-id')
     s.index.name = 'sample-id'
     return qiime2.CategoricalMetadataColumn(s)
 
 
 def _check_tips(table, tree):
+    # TODO: this is AI-generated code; human review pending
     newick = tree.view(NewickFormat)
     t = skbio.TreeNode.read(str(newick), format='newick',
                             convert_underscores=False, verify=False)
