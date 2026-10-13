@@ -1,10 +1,11 @@
 (workflow)=
 # The integration workflow, command by command
 
-<!-- Narrative prose is @gregcaporaso's. This page is the command sequence of the
-thermo-hec baseline (ten compost samples with both 16S V4 amplicon and shotgun
-metagenome data, GTDB r232), with one-line captions. Data download links are
-placeholders until the tutorial subset is published. -->
+<!-- Draft by Claude, pending @gregcaporaso's rewrite (2026-10-13: no prose of
+theirs yet). This page is the command sequence of the thermo-hec baseline (ten
+compost samples with both 16S V4 amplicon and shotgun metagenome data, GTDB
+r232), with one-line captions. Data download links are placeholders until the
+tutorial subset is published. -->
 
 Stock QIIME 2 and MOSHPIT actions prepare each side; `confluence` actions start at the reference tree.
 Commands assume a working directory with `16S/`, `wgs/` and `reference/` subdirectories and the `q2-confluence` environment active.
@@ -96,7 +97,7 @@ mosh quality-control filter-reads-human-pangenome \
 
 The index build downloads GRCh38 and the HPRC pangenome and takes hours the first time; pass `--i-index reference/human-pangenome-bowtie2.qza` on later runs.
 
-Then the sylph profile and its conversion to counts, both `confluence` actions.
+Then the sylph profile, two `confluence` actions.
 
 ```shell
 qiime confluence fetch-sylph-database \
@@ -149,7 +150,7 @@ qiime confluence integrate \
 ```
 
 `summarize-inputs` shows which sample IDs the sources share; `integrate` pairs samples by identical IDs and names the merged samples `<id>-amplicon` and `<id>-metagenome`, with `original-sample-id`, `source` and `unassigned-share` in the integrated metadata.
-Features without a name at the level are dropped from every source.
+Features without a name at the level are dropped from every source, and each source is renormalized to proportions, so counts (the amplicon table) and proportions (the sylph table) integrate alike.
 
 ## Paired-sample report
 
@@ -167,5 +168,6 @@ qiime confluence paired-report \
   --o-feature-importance genus/feature-importance.qza
 ```
 
-The report holds the bootstrapped weighted-UniFrac ordination, PERMANOVA by source for every metric, the random forest's confusion matrix and heatmap, and the per-feature summary.
+Bray-Curtis, Jaccard, unweighted and weighted UniFrac are computed on the proportions as they are, without rarefaction.
+The report holds, per metric, PERMANOVA by source and a PCoA scatter plot colored by source, then the random forest's confusion matrix and the per-feature summary.
 Repeat the collapse, integration and report with `--p-level 5` for the family-level view.
