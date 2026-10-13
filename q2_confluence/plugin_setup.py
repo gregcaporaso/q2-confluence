@@ -18,7 +18,7 @@ from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
 
 from q2_confluence import __version__
-from q2_confluence._examples import (_frequency_one_million,
+from q2_confluence._examples import (_relative_frequency_example,
                                      _gtdb_tree_collapse_genus,
                                      _integrate_at_genus,
                                      _merge_metadata_union,
@@ -32,7 +32,7 @@ from q2_confluence._report import paired_report, summarize_paired_features
 from q2_confluence._sylph import (SylphDatabase, SylphDatabaseDirFmt, SylphDbFormat,
                                   SylphTaxonomyFormat, fetch_sylph_database,
                                   profile_reads)
-from q2_confluence._table import frequency
+from q2_confluence._table import relative_frequency
 from q2_confluence._tree import gtdb_tree_collapse
 
 citations = Citations.load("citations.bib", package="q2_confluence")
@@ -87,29 +87,27 @@ plugin.methods.register_function(
 )
 
 plugin.methods.register_function(
-    function=frequency,
-    inputs={'table': FeatureTable[RelativeFrequency]},
-    parameters={'total': Int % Range(1, None)},
-    outputs=[('table', FeatureTable[Frequency])],
-    input_descriptions={'table': 'Proportions per sample (each sample sums to 1).'},
-    parameter_descriptions={
-        'total': 'The count every sample is scaled to. A feature below '
-                 '0.5 / total in a sample rounds to zero there, so a total of '
-                 '1000000 keeps every proportion of 5e-7 or more.'},
+    function=relative_frequency,
+    inputs={'table': FeatureTable[Frequency | RelativeFrequency]},
+    parameters={},
+    outputs=[('relative_frequency_table', FeatureTable[RelativeFrequency])],
+    input_descriptions={
+        'table': 'Counts, or proportions whose samples no longer sum to 1 '
+                 '(after a feature filter).'},
+    parameter_descriptions={},
     output_descriptions={
-        'table': 'round(proportion * total) per sample; sample totals equal '
-                 'the total up to rounding.'},
-    name='Rescale proportions to counts',
+        'relative_frequency_table': 'Each sample divided by its total; an '
+                                    'empty sample stays empty.'},
+    name='Proportions from counts or from proportions',
     description=(
-        'Profiles reported as proportions (sylph, MetaPhlAn, TPM) cannot go '
-        'through actions that need counts, such as rarefaction, q2-boots, or '
-        'the sample classifier. This action multiplies each sample by one '
-        'total and rounds, and says so: unlike sapienns frequency, the total '
-        'is applied to proportions, not percentages. Provisional: expected to '
-        'move to q2-feature-table.'
+        'feature-table relative-frequency for a table that may already hold '
+        'proportions: each sample is divided by its total, so a relative '
+        'table from which features were dropped sums to 1 again. integrate '
+        'uses it on every source. Provisional: expected to be folded into '
+        'feature-table relative-frequency.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     deprecated=True,
-    examples={'Scale to one million per sample': _frequency_one_million},
+    examples={'Renormalize after dropping a feature': _relative_frequency_example},
 )
 
 plugin.visualizers.register_function(
@@ -158,19 +156,17 @@ plugin.methods.register_function(
 
 plugin.pipelines.register_function(
     function=integrate,
-    inputs={'tables': Collection[FeatureTable[Frequency]],
+    inputs={'tables': Collection[FeatureTable[Frequency | RelativeFrequency]],
             'taxonomies': Collection[FeatureData[Taxonomy]],
             'tree': Phylogeny[Rooted],
             'metadata': Collection[ImmutableMetadata]},
-    parameters={'level': Int % Range(1, None),
-                'total': Int % Range(1, None)},
+    parameters={'level': Int % Range(1, None)},
     outputs=[('relative_table', FeatureTable[RelativeFrequency]),
-             ('frequency_table', FeatureTable[Frequency]),
              ('taxonomy', FeatureData[Taxonomy]),
              ('integrated_metadata', ImmutableMetadata)],
     input_descriptions={
-        'tables': 'One count table per source, keyed by a label (profiles '
-                  'reported as proportions go through frequency first).',
+        'tables': 'One table per source, counts or proportions, keyed by a '
+                  'label.',
         'taxonomies': 'The taxonomy of each table\'s features, same keys, all '
                       'from the same reference release.',
         'tree': 'The reference tree collapsed to the same level with '
@@ -178,12 +174,10 @@ plugin.pipelines.register_function(
         'metadata': 'The studies\' sample metadata, keyed by a label '
                     '(optional).'},
     parameter_descriptions={
-        'level': 'The taxonomic level to collapse to, as in taxa collapse.',
-        'total': 'The per-sample total of the frequency table output.'},
+        'level': 'The taxonomic level to collapse to, as in taxa collapse.'},
     output_descriptions={
         'relative_table': 'Every source collapsed to the level, unnamed features '
                           'dropped, as proportions; sample IDs are <id>-<key>.',
-        'frequency_table': 'The same table as counts at the given total.',
         'taxonomy': 'The taxonomy of the merged features (their IDs).',
         'integrated_metadata': 'One row per merged sample: original-sample-id, '
                     'source (the key), unassigned-share (dropped at the level), '
@@ -191,10 +185,10 @@ plugin.pipelines.register_function(
     name='Integrate profiles at one taxonomic level',
     description=(
         'For each source: taxa collapse to the level, drop the features without '
-        'a name at that level, convert to proportions, suffix the sample IDs '
-        'with the key. Merge, check every feature is a tip of the tree, rescale '
-        'to counts, derive the taxonomy from the feature IDs, and build the '
-        'metadata. Samples with the same ID in two sources are a pair, which '
+        'a name at that level, renormalize to proportions, suffix the sample '
+        'IDs with the key. Merge, check every feature is a tip of the tree, '
+        'derive the taxonomy from the feature IDs, and build the metadata. '
+        'Samples with the same ID in two sources are a pair, which '
         'paired-report uses.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     examples={'Amplicon and metagenome at genus': _integrate_at_genus},

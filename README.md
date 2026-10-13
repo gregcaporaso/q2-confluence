@@ -14,11 +14,11 @@ The workflow, in order (`qiime confluence <action> --help` for the details):
 |---|---|---|
 | `fetch-sylph-database` | Pre-built sylph database of the GTDB species representatives (226 or 232) with its sylph-tax taxonomy | provisional, intended for MOSHPIT |
 | `profile-reads` | sylph sketch, profile and taxprof on paired-end reads: genome-keyed taxonomic and sequence abundance tables, taxonomy, per-sample stats | provisional, intended for MOSHPIT |
-| `frequency` | Proportions to counts at one per-sample total, for actions that need counts | provisional, intended for q2-feature-table |
 | `gtdb-tree-collapse` | A reference tree collapsed to one tip per taxon at a level, named like `taxa collapse` IDs; once per release and level | provisional, intended for q2-phylogeny |
 | `summarize-inputs` | Which sample IDs the tables and metadata of the studies share | stays |
 | `merge-metadata` | Union or intersection of several studies' metadata | stays |
-| `integrate` | Every source collapsed to the level, unnamed features dropped, merged with `original-sample-id` and `source` metadata columns; sample IDs become `<id>-<key>` | stays |
+| `relative-frequency` | Proportions from counts or from a relative table whose features were filtered; `integrate` applies it to every source | provisional, intended for q2-feature-table |
+| `integrate` | Every source (counts or proportions) collapsed to the level, unnamed features dropped, renormalized, merged with `original-sample-id` and `source` metadata columns; sample IDs become `<id>-<key>` | stays |
 | `paired-report` | On the samples every source profiled: Bray-Curtis, Jaccard and UniFrac on the proportions (no rarefaction), PERMANOVA by source and a PCoA scatter plot per metric, random forest with nested cross-validation, per-feature summary, one report | stays |
 | `summarize-paired-features` | The per-feature summary on its own | stays |
 

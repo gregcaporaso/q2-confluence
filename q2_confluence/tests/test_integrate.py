@@ -30,7 +30,7 @@ class IntegrateTests(TestPluginBase):
         self.genus_tree, = collapse(ex._reference_tree_factory(),
                                     ex._reference_taxonomy_factory(), 6)
         self.tables = {'amplicon': ex._amplicon_table_three_asvs_factory(),
-                       'metagenome': ex._metagenome_counts_factory()}
+                       'metagenome': ex._metagenome_relative_factory()}
         self.taxonomies = {'amplicon': ex._amplicon_taxonomy_factory(),
                            'metagenome': ex._metagenome_taxonomy_factory()}
         self.metadata = {'amplicon': ex._amplicon_metadata_factory(),
@@ -38,8 +38,8 @@ class IntegrateTests(TestPluginBase):
 
     def test_genus(self):
         # TODO: this is AI-generated code; human review pending
-        rel, counts, taxonomy, md = self.integrate(
-            self.tables, self.taxonomies, self.genus_tree, 6, 1000,
+        rel, taxonomy, md = self.integrate(
+            self.tables, self.taxonomies, self.genus_tree, 6,
             metadata=self.metadata)
         rel = rel.view(biom.Table)
         self.assertEqual(sorted(rel.ids(axis='observation')), [BACILLUS, BLAUTIA])
@@ -51,9 +51,9 @@ class IntegrateTests(TestPluginBase):
         # sample-1 amplicon = 12 Blautia, 3 Bacillus
         self.assertAlmostEqual(rel.get_value_by_ids(BLAUTIA, 'sample-1-amplicon'),
                                12 / 15)
-        counts = counts.view(biom.Table)
-        self.assertEqual(counts.get_value_by_ids(BLAUTIA, 'sample-1-amplicon'), 800)
-        self.assertEqual(counts.get_value_by_ids(BLAUTIA, 'sample-2-metagenome'), 600)
+        # the metagenome source came in as proportions
+        self.assertAlmostEqual(rel.get_value_by_ids(BLAUTIA, 'sample-2-metagenome'),
+                               0.6)
         tax = taxonomy.view(pd.Series)
         self.assertEqual(tax[BLAUTIA], BLAUTIA)
         md = md.view(qiime2.Metadata).to_dataframe()
@@ -68,8 +68,8 @@ class IntegrateTests(TestPluginBase):
 
     def test_without_metadata(self):
         # TODO: this is AI-generated code; human review pending
-        _, _, _, md = self.integrate(self.tables, self.taxonomies,
-                                     self.genus_tree, 6, 1000)
+        _, _, md = self.integrate(self.tables, self.taxonomies,
+                                  self.genus_tree, 6)
         cols = md.view(qiime2.Metadata).to_dataframe().columns
         self.assertEqual(sorted(cols),
                          ['original-sample-id', 'source', 'unassigned-share'])
@@ -79,10 +79,10 @@ class IntegrateTests(TestPluginBase):
         family_tree, = self.plugin.methods['gtdb_tree_collapse'](
             ex._reference_tree_factory(), ex._reference_taxonomy_factory(), 5)
         with self.assertRaisesRegex(ValueError, 'not tips of the tree'):
-            self.integrate(self.tables, self.taxonomies, family_tree, 6, 1000)
+            self.integrate(self.tables, self.taxonomies, family_tree, 6)
 
     def test_key_mismatch(self):
         # TODO: this is AI-generated code; human review pending
         with self.assertRaisesRegex(ValueError, 'same keys'):
             self.integrate(self.tables, {'amplicon': self.taxonomies['amplicon']},
-                           self.genus_tree, 6, 1000)
+                           self.genus_tree, 6)

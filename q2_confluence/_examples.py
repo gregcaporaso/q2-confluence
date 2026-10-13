@@ -71,7 +71,8 @@ def _relative_table_factory():
     # TODO: this is AI-generated code; human review pending
     import biom
     import numpy as np
-    table = biom.Table(np.array([[0.6, 0.1], [0.4, 0.9]]),
+    # proportions left by dropping a feature: the samples sum to 0.9 and 0.95
+    table = biom.Table(np.array([[0.6, 0.1], [0.3, 0.85]]),
                        ['d__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;'
                         'f__Lachnospiraceae;g__Blautia',
                         'd__Bacteria;p__Bacillota;c__Bacilli;o__Bacillales;'
@@ -80,13 +81,13 @@ def _relative_table_factory():
     return Artifact.import_data('FeatureTable[RelativeFrequency]', table)
 
 
-def _frequency_one_million(use):
+def _relative_frequency_example(use):
     # TODO: this is AI-generated code; human review pending
-    table = use.init_artifact('relative-table', _relative_table_factory)
+    table = use.init_artifact('filtered-relative-table', _relative_table_factory)
     use.action(
-        use.UsageAction('confluence', 'frequency'),
-        use.UsageInputs(table=table, total=1_000_000),
-        use.UsageOutputNames(table='frequency-table'),
+        use.UsageAction('confluence', 'relative_frequency'),
+        use.UsageInputs(table=table),
+        use.UsageOutputNames(relative_frequency_table='relative-table'),
     )
 
 
@@ -202,13 +203,13 @@ def _amplicon_table_three_asvs_factory():
     return Artifact.import_data('FeatureTable[Frequency]', table)
 
 
-def _metagenome_counts_factory():
+def _metagenome_relative_factory():
     # TODO: this is AI-generated code; human review pending
     import biom
     import numpy as np
-    table = biom.Table(np.array([[600000, 100000], [400000, 900000]]),
+    table = biom.Table(np.array([[0.6, 0.1], [0.4, 0.9]]),
                        ['GCF_1', 'GCF_2'], ['sample-2', 'sample-3'])
-    return Artifact.import_data('FeatureTable[Frequency]', table)
+    return Artifact.import_data('FeatureTable[RelativeFrequency]', table)
 
 
 def _integrate_at_genus(use):
@@ -225,7 +226,8 @@ def _integrate_at_genus(use):
                                  _amplicon_table_three_asvs_factory)
     amplicon_tax = use.init_artifact('amplicon-taxonomy',
                                      _amplicon_taxonomy_factory)
-    metagenome = use.init_artifact('metagenome-table', _metagenome_counts_factory)
+    metagenome = use.init_artifact('metagenome-table',
+                                   _metagenome_relative_factory)
     metagenome_tax = use.init_artifact('metagenome-taxonomy',
                                        _metagenome_taxonomy_factory)
     amplicon_md = use.init_artifact('amplicon-metadata', _amplicon_metadata_factory)
@@ -240,9 +242,8 @@ def _integrate_at_genus(use):
     use.action(
         use.UsageAction('confluence', 'integrate'),
         use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=genus_tree,
-                        level=6, total=1_000_000, metadata=metadata),
+                        level=6, metadata=metadata),
         use.UsageOutputNames(relative_table='genus-relative-table',
-                             frequency_table='genus-frequency-table',
                              taxonomy='genus-taxonomy',
                              integrated_metadata='genus-metadata'),
     )
@@ -439,12 +440,11 @@ def _paired_report_example(use):
                                         _paired_metagenome_taxonomy_factory)})
     metadata = use.construct_artifact_collection('metadata', {
         'study': use.init_artifact('study-metadata', _paired_metadata_factory)})
-    relative_table, _, _, merged_metadata = use.action(
+    relative_table, _, merged_metadata = use.action(
         use.UsageAction('confluence', 'integrate'),
         use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=genus_tree,
-                        level=6, total=1_000_000, metadata=metadata),
+                        level=6, metadata=metadata),
         use.UsageOutputNames(relative_table='genus-relative-table',
-                             frequency_table='genus-frequency-table',
                              taxonomy='genus-taxonomy',
                              integrated_metadata='genus-metadata'),
     )

@@ -15,16 +15,17 @@ from q2_types.tree import NewickFormat
 from ._taxonomy import _is_named
 
 
-def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
+def integrate(ctx, tables, taxonomies, tree, level, metadata=None):
     # TODO: this is AI-generated code; human review pending
     """Collapse every table to `level`, drop what is unnamed there, merge.
 
-    `tables` and `taxonomies` are collections with the same keys; `tree` is
-    the reference tree collapsed to the same level. Sample IDs in the merged
-    table are '<id>-<key>', and the output metadata records the original ID
-    (`original-sample-id`), the key (`source`) and the share of each sample dropped as
-    unnamed at the level (`unassigned-share`), joined to the union of the
-    studies' metadata when given.
+    `tables` (counts or proportions) and `taxonomies` are collections with
+    the same keys; `tree` is the reference tree collapsed to the same level.
+    Every source is renormalized to proportions after the drop. Sample IDs
+    in the merged table are '<id>-<key>', and the output metadata records
+    the original ID (`original-sample-id`), the key (`source`) and the share
+    of each sample dropped as unnamed at the level (`unassigned-share`),
+    joined to the union of the studies' metadata when given.
     """
     keys = list(tables.keys())   # a ResultCollection: iterate explicitly
     if set(keys) != set(taxonomies.keys()):
@@ -32,11 +33,10 @@ def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
                          f'{sorted(keys)} vs {sorted(taxonomies.keys())}')
     collapse = ctx.get_action('taxa', 'collapse')
     filter_features = ctx.get_action('feature_table', 'filter_features')
-    relative_frequency = ctx.get_action('feature_table', 'relative_frequency')
+    relative_frequency = ctx.get_action('confluence', 'relative_frequency')
     rename_ids = ctx.get_action('feature_table', 'rename_ids')
     merge = ctx.get_action('feature_table', 'merge')
     ids_to_taxonomy = ctx.get_action('taxa', 'feature_ids_to_taxonomy')
-    frequency = ctx.get_action('confluence', 'frequency')
     merge_metadata = ctx.get_action('confluence', 'merge_metadata')
 
     relatives, rows = [], []
@@ -63,7 +63,6 @@ def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
 
     merged, = merge(tables=relatives)
     _check_tips(merged, tree)
-    counts, = frequency(table=merged, total=total)
     taxonomy, = ids_to_taxonomy(table=merged)
 
     md = pd.DataFrame(rows).set_index('sample-id')
@@ -72,7 +71,7 @@ def integrate(ctx, tables, taxonomies, tree, level, total, metadata=None):
         studies = studies.view(qiime2.Metadata).to_dataframe()
         md = md.join(studies, on='original-sample-id')
     merged_md = ctx.make_artifact('ImmutableMetadata', qiime2.Metadata(md))
-    return merged, counts, taxonomy, merged_md
+    return merged, taxonomy, merged_md
 
 
 def _sample_sums(table):

@@ -25,12 +25,12 @@ class PairedReportTests(TestPluginBase):
         collapse = self.plugin.methods['gtdb_tree_collapse']
         self.tree, = collapse(ex._reference_tree_factory(),
                               ex._reference_taxonomy_factory(), 6)
-        self.table, _, _, self.metadata = self.plugin.pipelines['integrate'](
+        self.table, _, self.metadata = self.plugin.pipelines['integrate'](
             {'amplicon': ex._paired_amplicon_table_factory(),
              'metagenome': ex._paired_metagenome_table_factory()},
             {'amplicon': ex._paired_amplicon_taxonomy_factory(),
              'metagenome': ex._paired_metagenome_taxonomy_factory()},
-            self.tree, 6, 1000, metadata={'study': ex._paired_metadata_factory()})
+            self.tree, 6, metadata={'study': ex._paired_metadata_factory()})
 
     def test_report(self):
         # TODO: this is AI-generated code; human review pending

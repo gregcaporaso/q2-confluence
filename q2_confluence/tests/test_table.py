@@ -12,46 +12,39 @@ import biom
 import numpy as np
 import numpy.testing as npt
 
-from q2_confluence._table import frequency
+from q2_confluence._table import relative_frequency
 
 
-class FrequencyTests(unittest.TestCase):
-
-    def setUp(self):
-        # TODO: this is AI-generated code; human review pending
-        self.table = biom.Table(
-            np.array([[0.5, 0.2, 0.0], [0.5, 0.7999996, 0.0], [0.0, 0.0000004, 0.0]]),
-            ['f1', 'f2', 'f3'], ['s1', 's2', 'empty'])
+class RelativeFrequencyTests(unittest.TestCase):
 
     def test_counts(self):
         # TODO: this is AI-generated code; human review pending
-        out = frequency(self.table, 1000)
-        npt.assert_array_equal(out.matrix_data.toarray(),
-                               [[500, 200, 0], [500, 800, 0], [0, 0, 0]])
-        self.assertEqual(list(out.ids()), ['s1', 's2', 'empty'])
-        self.assertEqual(list(out.ids(axis='observation')), ['f1', 'f2', 'f3'])
+        table = biom.Table(np.array([[12.0, 0.0], [3.0, 9.0]]),
+                           ['f1', 'f2'], ['s1', 's2'])
+        out = relative_frequency(table)
+        npt.assert_allclose(out.matrix_data.toarray(), [[0.8, 0.0], [0.2, 1.0]])
+        self.assertEqual(list(out.ids()), ['s1', 's2'])
+        self.assertEqual(list(out.ids(axis='observation')), ['f1', 'f2'])
 
-    def test_total_sets_the_floor(self):
-        # 4e-7 of s2 is lost at 1e6 (rounds to 0) and kept at 1e7
+    def test_proportions_after_a_drop(self):
         # TODO: this is AI-generated code; human review pending
-        lost = frequency(self.table, 1_000_000).get_value_by_ids('f3', 's2')
-        kept = frequency(self.table, 10_000_000).get_value_by_ids('f3', 's2')
-        self.assertEqual((lost, kept), (0, 4))
+        table = biom.Table(np.array([[0.6, 0.1], [0.3, 0.85]]),
+                           ['f1', 'f2'], ['s1', 's2'])
+        out = relative_frequency(table)
+        npt.assert_allclose(out.matrix_data.toarray(),
+                            [[2 / 3, 0.1 / 0.95], [1 / 3, 0.85 / 0.95]])
+
+    def test_empty_sample(self):
+        # TODO: this is AI-generated code; human review pending
+        table = biom.Table(np.array([[1.0, 0.0], [1.0, 0.0]]),
+                           ['f1', 'f2'], ['s1', 'empty'])
+        out = relative_frequency(table)
+        npt.assert_allclose(out.matrix_data.toarray(), [[0.5, 0.0], [0.5, 0.0]])
 
     def test_input_unchanged(self):
         # TODO: this is AI-generated code; human review pending
-        before = self.table.copy()
-        frequency(self.table, 1000)
-        self.assertEqual(self.table, before)
-
-    def test_not_relative(self):
-        # TODO: this is AI-generated code; human review pending
-        counts = biom.Table(np.array([[5.0, 2.0], [5.0, 8.0]]),
-                            ['f1', 'f2'], ['s1', 's2'])
-        with self.assertRaisesRegex(ValueError, 'do not sum to 1'):
-            frequency(counts, 1000)
-
-    def test_bad_total(self):
-        # TODO: this is AI-generated code; human review pending
-        with self.assertRaisesRegex(ValueError, 'at least 1'):
-            frequency(self.table, 0)
+        table = biom.Table(np.array([[12.0, 0.0], [3.0, 9.0]]),
+                           ['f1', 'f2'], ['s1', 's2'])
+        before = table.copy()
+        relative_frequency(table)
+        self.assertEqual(table, before)

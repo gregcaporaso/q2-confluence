@@ -111,11 +111,6 @@ qiime confluence profile-reads \
   --o-sequence-abundance wgs/sylph-sequence-abundance.qza \
   --o-taxonomy wgs/sylph-taxonomy.qza \
   --o-stats wgs/sylph-stats.qza
-
-qiime confluence frequency \
-  --i-table wgs/sylph-taxonomic-abundance.qza \
-  --p-total 1000000 \
-  --o-table wgs/sylph-table.qza
 ```
 
 The taxonomic abundance (genome-size corrected) is the measure to integrate; the sequence abundance (read share) is kept alongside.
@@ -128,7 +123,7 @@ Collections are passed as directories whose file names are the keys.
 ```shell
 mkdir -p tables taxonomies metadata
 cp 16S/asv-table-noorganelles.qza tables/amplicon.qza
-cp wgs/sylph-table.qza           tables/metagenome.qza
+cp wgs/sylph-taxonomic-abundance.qza tables/metagenome.qza
 cp 16S/asv-taxonomy-gtdb.qza     taxonomies/amplicon.qza
 cp wgs/sylph-taxonomy.qza        taxonomies/metagenome.qza
 
@@ -148,9 +143,7 @@ qiime confluence integrate \
   --i-tree reference/gtdb-r232-genus-tree.qza \
   --i-metadata metadata/ \
   --p-level 6 \
-  --p-total 1000000 \
   --o-relative-table genus/relative-table.qza \
-  --o-frequency-table genus/frequency-table.qza \
   --o-taxonomy genus/taxonomy.qza \
   --o-integrated-metadata genus/metadata.qza
 ```
