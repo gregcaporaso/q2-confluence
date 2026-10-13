@@ -439,7 +439,7 @@ def _paired_report_example(use):
                                         _paired_metagenome_taxonomy_factory)})
     metadata = use.construct_artifact_collection('metadata', {
         'study': use.init_artifact('study-metadata', _paired_metadata_factory)})
-    _, frequency_table, _, merged_metadata = use.action(
+    relative_table, _, _, merged_metadata = use.action(
         use.UsageAction('confluence', 'integrate'),
         use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=genus_tree,
                         level=6, total=1_000_000, metadata=metadata),
@@ -450,8 +450,8 @@ def _paired_report_example(use):
     )
     use.action(
         use.UsageAction('confluence', 'paired_report'),
-        use.UsageInputs(table=frequency_table, tree=genus_tree,
-                        metadata=merged_metadata, n_boots=2, permutations=99,
+        use.UsageInputs(table=relative_table, tree=genus_tree,
+                        metadata=merged_metadata, permutations=99,
                         cv=3, n_estimators=50, random_state=1),
         use.UsageOutputNames(report='paired-report',
                              distance_matrices='distance-matrices',

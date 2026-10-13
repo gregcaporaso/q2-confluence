@@ -162,10 +162,9 @@ Features without a name at the level are dropped from every source.
 
 ```shell
 qiime confluence paired-report \
-  --i-table genus/frequency-table.qza \
+  --i-table genus/relative-table.qza \
   --i-tree reference/gtdb-r232-genus-tree.qza \
   --i-metadata genus/metadata.qza \
-  --p-n-boots 10 \
   --p-permutations 999 \
   --p-cv 10 \
   --p-n-estimators 500 \

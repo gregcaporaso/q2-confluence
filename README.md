@@ -19,7 +19,7 @@ The workflow, in order (`qiime confluence <action> --help` for the details):
 | `summarize-inputs` | Which sample IDs the tables and metadata of the studies share | stays |
 | `merge-metadata` | Union or intersection of several studies' metadata | stays |
 | `integrate` | Every source collapsed to the level, unnamed features dropped, merged with `original-sample-id` and `source` metadata columns; sample IDs become `<id>-<key>` | stays |
-| `paired-report` | On the samples every source profiled: bootstrapped ordination, PERMANOVA by source, random forest with nested cross-validation, per-feature summary, one report | stays |
+| `paired-report` | On the samples every source profiled: Bray-Curtis, Jaccard and UniFrac on the proportions (no rarefaction), PERMANOVA by source and a PCoA scatter plot per metric, random forest with nested cross-validation, per-feature summary, one report | stays |
 | `summarize-paired-features` | The per-feature summary on its own | stays |
 
 The amplicon side (denoising, GTDB classification, the SILVA-based organelle filter) and the metagenome read preparation (trimming, host read removal) are stock QIIME 2 and MOSHPIT actions and are described in the documentation rather than wrapped here.

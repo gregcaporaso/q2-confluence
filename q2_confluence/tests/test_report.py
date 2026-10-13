@@ -25,7 +25,7 @@ class PairedReportTests(TestPluginBase):
         collapse = self.plugin.methods['gtdb_tree_collapse']
         self.tree, = collapse(ex._reference_tree_factory(),
                               ex._reference_taxonomy_factory(), 6)
-        _, self.table, _, self.metadata = self.plugin.pipelines['integrate'](
+        self.table, _, _, self.metadata = self.plugin.pipelines['integrate'](
             {'amplicon': ex._paired_amplicon_table_factory(),
              'metagenome': ex._paired_metagenome_table_factory()},
             {'amplicon': ex._paired_amplicon_taxonomy_factory(),
@@ -35,7 +35,7 @@ class PairedReportTests(TestPluginBase):
     def test_report(self):
         # TODO: this is AI-generated code; human review pending
         report, dms, importance = self.plugin.pipelines['paired_report'](
-            self.table, self.tree, self.metadata, n_boots=2, permutations=99,
+            self.table, self.tree, self.metadata, permutations=99,
             cv=3, n_estimators=50, random_state=1)
         self.assertEqual(sorted(dms.keys()),
                          ['braycurtis', 'jaccard', 'unweighted_unifrac',
@@ -63,7 +63,7 @@ class PairedReportTests(TestPluginBase):
         metadata = qiime2.Artifact.import_data('ImmutableMetadata',
                                                qiime2.Metadata(md))
         _, dms, _ = self.plugin.pipelines['paired_report'](
-            self.table, self.tree, metadata, n_boots=2, permutations=99,
+            self.table, self.tree, metadata, permutations=99,
             cv=3, n_estimators=50, random_state=1)
         dm = dms['braycurtis'].view(__import__('skbio').DistanceMatrix)
         self.assertEqual(len(dm.ids), 10)
@@ -78,7 +78,7 @@ class PairedReportTests(TestPluginBase):
                                                qiime2.Metadata(md))
         with self.assertRaisesRegex(ValueError, 'at least 2 are needed'):
             self.plugin.pipelines['paired_report'](
-                self.table, self.tree, metadata, n_boots=2, permutations=99,
+                self.table, self.tree, metadata, permutations=99,
                 cv=3, n_estimators=50)
 
     def test_wrong_metadata(self):

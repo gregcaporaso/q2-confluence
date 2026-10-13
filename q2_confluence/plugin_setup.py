@@ -293,11 +293,10 @@ plugin.visualizers.register_function(
 
 plugin.pipelines.register_function(
     function=paired_report,
-    inputs={'table': FeatureTable[Frequency],
+    inputs={'table': FeatureTable[RelativeFrequency],
             'tree': Phylogeny[Rooted],
             'metadata': ImmutableMetadata},
-    parameters={'n_boots': Int % Range(1, None),
-                'permutations': Int % Range(1, None),
+    parameters={'permutations': Int % Range(1, None),
                 'cv': Int % Range(2, None),
                 'n_estimators': Int % Range(1, None),
                 'random_state': Int,
@@ -306,30 +305,30 @@ plugin.pipelines.register_function(
              ('distance_matrices', Collection[DistanceMatrix]),
              ('feature_importance', FeatureData[Importance])],
     input_descriptions={
-        'table': 'The frequency table from integrate.',
+        'table': 'The relative table from integrate.',
         'tree': 'The reference tree collapsed to the same level.',
         'metadata': 'The metadata from integrate (source and '
                     'original-sample-id).'},
     parameter_descriptions={
-        'n_boots': 'Bootstrap iterations for q2-boots core-metrics.',
         'permutations': 'PERMANOVA permutations.',
         'cv': 'Folds of the nested cross-validation.',
         'n_estimators': 'Trees in the random forest.',
-        'random_state': 'Seed for the bootstraps and the forest.',
+        'random_state': 'Seed for the forest.',
         'n_jobs': 'Threads for the random forest.'},
     output_descriptions={
-        'report': 'One report: the bootstrapped ordination, PERMANOVA by source '
-                  'for every distance metric, the random forest\'s confusion '
-                  'matrix and heatmap, and the per-feature summary.',
-        'distance_matrices': 'The bootstrapped distance matrices.',
+        'report': 'One report: per metric, PERMANOVA by source and a PCoA '
+                  'scatter plot; the random forest\'s confusion matrix; and '
+                  'the per-feature summary.',
+        'distance_matrices': 'The distance matrices, keyed by metric.',
         'feature_importance': 'The random forest\'s feature importances.'},
     name='Compare the sources on the samples every source profiled',
     description=(
-        'Keeps the samples whose original ID is present in every source, runs '
-        'q2-boots core-metrics with the tree at the smallest sample total, '
-        'PERMANOVA by source on every distance matrix, a random forest '
-        'classifying source with nested cross-validation, and the per-feature '
-        'summary, collated into one report.'
+        'Keeps the samples whose original ID is present in every source and '
+        'computes Bray-Curtis, Jaccard, unweighted and weighted UniFrac on the '
+        'proportions as they are (no rarefaction), with PERMANOVA by source '
+        'and a PCoA scatter plot for each; then a random forest classifying '
+        'source with nested cross-validation and the per-feature summary, '
+        'collated into one report.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     examples={'Two sources on six paired samples': _paired_report_example},
 )
