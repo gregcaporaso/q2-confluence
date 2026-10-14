@@ -1,14 +1,47 @@
 (workflow)=
 # The integration workflow, command by command
 
-<!-- Draft by Claude, pending @gregcaporaso's rewrite (2026-10-13: no prose of
-theirs yet). This page is the command sequence of the thermo-hec baseline (ten
-compost samples with both 16S V4 amplicon and shotgun metagenome data, GTDB
-r232), with one-line captions. Data download links are placeholders until the
-tutorial subset is published. -->
+<!-- Draft by Claude, pending @gregcaporaso's rewrite (no prose of theirs yet).
+This page is the command sequence of the thermo-hec baseline (ten compost
+samples with both 16S V4 amplicon and shotgun metagenome data, GTDB r232),
+with one-line captions. -->
 
 Stock QIIME 2 and MOSHPIT actions prepare each side; `confluence` actions start at the reference tree.
 Commands assume a working directory with `16S/`, `wgs/` and `reference/` subdirectories and the `q2-confluence` environment active.
+
+## Data
+
+The tutorial subset: the ten compost samples with both assays.
+The shotgun reads are already trimmed, control-free and human-read-free, and subsampled to 10% (2.4 to 4.8 million pairs per sample), a depth at which the sylph profile is indistinguishable from full depth by weighted and unweighted UniFrac.
+The 16S artifacts are the unfiltered DADA2 outputs of the whole study (199 samples); the organelle filter below is part of the workflow.
+
+```shell
+mkdir -p 16S wgs reference
+D='https://drive.usercontent.google.com/download?export=download&confirm=t&id='
+wget -O wgs/wgs-subset-reads.qza "${D}1fkzsYoWAIeGOJDQrdqGcf5k5rNfoFR7E"
+wget -O 16S/asv-table.qza "${D}1-mcm1_ngVVuysqgJyURKaOTEI0OV1vee"
+wget -O 16S/asv-sequences.qza "${D}1uOcdxD5WhiH83qVNnvq55kkwMCKHd58B"
+wget -O sample-metadata.tsv "${D}1BgqmKoAfQpUmlKA9Mc86FK8uCnB7fX-l"
+md5sum wgs/wgs-subset-reads.qza 16S/asv-table.qza 16S/asv-sequences.qza sample-metadata.tsv
+```
+
+| File | Size | md5 |
+|---|---|---|
+| `wgs/wgs-subset-reads.qza` | 4.8 GB | `884d47f6948d010356cde49594238b3f` |
+| `16S/asv-table.qza` | 2.7 MB | `48d9f13d671e30714b3aad3f8665ec98` |
+| `16S/asv-sequences.qza` | 2.7 MB | `cdd603a2e8dae3d9f2fb643a81ae50b2` |
+| `sample-metadata.tsv` | 37 KB | `f0523491b674cb19383ebbc3f7780778` |
+
+The reads artifact carries the provenance of the import, trimming, control removal, host-read removal and subsampling described under "Metagenome side".
+
+The reference files come from their sources: the GTDB r232 bacterial tree and genome taxonomy, the GTDB r232 naive Bayes classifier from the rachis Zenodo record, and the SILVA 144 V4 uniform classifier from SILVA.
+
+```shell
+wget -P reference https://data.gtdb.ecogenomic.org/releases/release232/232.0/bac120_r232.tree
+wget -P reference https://data.gtdb.ecogenomic.org/releases/release232/232.0/bac120_taxonomy_r232.tsv.gz
+wget -O reference/gtdb-r232.0-2026.7.0-classifier.qza 'https://zenodo.org/records/21619532/files/gtdb-r232.0-2026.7.0-classifier.qza?download=1'
+wget -P reference https://www.arb-silva.de/fileadmin/silva_databases/current/QIIME2/2026.7/SSU/V4-515f-806r/uniform/SILVA_144_SSURef_NR99_uniform_classifier_V4-515f-806r.qza
+```
 
 ## Reference artifacts (once per GTDB release)
 
@@ -17,14 +50,14 @@ The bacterial tree and the genome-keyed taxonomy of a release, collapsed to the 
 ```shell
 qiime tools import \
   --type 'Phylogeny[Rooted]' \
-  --input-path bac120_r232.tree \
+  --input-path reference/bac120_r232.tree \
   --output-path reference/gtdb-r232-bac120-tree.qza
 
-gunzip -k bac120_taxonomy_r232.tsv.gz
+gunzip -k reference/bac120_taxonomy_r232.tsv.gz
 qiime tools import \
   --type 'FeatureData[Taxonomy]' \
   --input-format HeaderlessTSVTaxonomyFormat \
-  --input-path bac120_taxonomy_r232.tsv \
+  --input-path reference/bac120_taxonomy_r232.tsv \
   --output-path reference/gtdb-r232-bac120-taxonomy.qza
 
 qiime confluence gtdb-tree-collapse \
@@ -36,6 +69,7 @@ qiime confluence gtdb-tree-collapse \
 
 Level 6 is genus with the seven GTDB ranks; 5 is family and 7 species.
 The same collapsed tree serves every table collapsed to that level.
+On r232 the collapse takes about ten seconds per level: 6,048 families, 34,834 genera, 189,801 species.
 
 ## Amplicon side (stock actions)
 
@@ -67,7 +101,8 @@ On the thermo-hec data the organelle filter removed 329 of 35,731 ASVs and 0.5% 
 
 ## Metagenome side
 
-Import, trim, drop the controls, remove human reads: stock actions.
+How the subset was prepared, with stock actions, from the study's raw reads: import, trim, drop the controls, remove human reads.
+These steps are recorded in the provenance of `wgs/wgs-subset-reads.qza`; a reader working on the subset starts at the sylph profile below.
 
 ```shell
 qiime tools import \
@@ -95,9 +130,10 @@ mosh quality-control filter-reads-human-pangenome \
   --o-reference-index reference/human-pangenome-bowtie2.qza
 ```
 
-The index build downloads GRCh38 and the HPRC pangenome and takes hours the first time; pass `--i-index reference/human-pangenome-bowtie2.qza` on later runs.
+The index build downloads GRCh38 and the HPRC pangenome and takes hours the first time (on a 16-core server: 4 h to build at 50 GB peak, then 5 h 42 min to filter 393 million pairs at 58 GB peak, removing 3.8% of them); pass `--i-index reference/human-pangenome-bowtie2.qza` on later runs.
+The subset was then drawn with `qiime demux subsample-paired --p-fraction 0.1`.
 
-Then the sylph profile, two `confluence` actions.
+Then the sylph profile, two `confluence` actions, on the subset (minutes; the full data took 3 min at 4.7 GB peak).
 
 ```shell
 qiime confluence fetch-sylph-database \
@@ -105,7 +141,7 @@ qiime confluence fetch-sylph-database \
   --o-database reference/sylph-gtdb-r232.qza
 
 qiime confluence profile-reads \
-  --i-reads wgs/reads-nohost.qza \
+  --i-reads wgs/wgs-subset-reads.qza \
   --i-database reference/sylph-gtdb-r232.qza \
   --p-threads 16 \
   --o-taxonomic-abundance wgs/sylph-taxonomic-abundance.qza \
