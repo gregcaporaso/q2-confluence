@@ -17,7 +17,22 @@ import qiime2
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_confluence import _examples as ex
-from q2_confluence._sylph import SylphDatabaseDirFmt
+from q2_confluence._sylph import SylphDatabaseDirFmt, SylphSketchesDirFmt
+
+
+class SketchReadsTests(TestPluginBase):
+    package = 'q2_confluence.tests'
+
+    def test_sketch(self):
+        # TODO: this is AI-generated code; human review pending
+        sketches, = self.plugin.methods['sketch_reads'](
+            ex._paired_reads_factory(), threads=1)
+        self.assertEqual(str(sketches.type), 'SylphSketches')
+        paths = sketches.view(SylphSketchesDirFmt).sample_paths()
+        self.assertEqual(list(paths), ['sample-1', 'sample-2', 'sample-3'])
+        for p in paths.values():
+            self.assertTrue(p.endswith('.paired.sylsp'))
+            self.assertGreater(os.path.getsize(p), 0)
 
 
 class ProfileReadsTests(TestPluginBase):
@@ -25,10 +40,11 @@ class ProfileReadsTests(TestPluginBase):
 
     def test_profile(self):
         # TODO: this is AI-generated code; human review pending
-        reads = ex._paired_reads_factory()
+        sketches, = self.plugin.methods['sketch_reads'](
+            ex._paired_reads_factory(), threads=1)
         database = ex._sylph_database_factory()
         rel, seq, tax, stats = self.plugin.methods['profile_reads'](
-            reads, database, threads=1)
+            sketches, database, threads=1)
         rel = rel.view(biom.Table)
         self.assertEqual(list(rel.ids()), ['sample-1', 'sample-2', 'sample-3'])
         self.assertEqual(list(rel.ids(axis='observation')),
@@ -86,3 +102,10 @@ class SylphDatabaseFormatTests(TestPluginBase):
                 fh.write('GCF_1\td__Bacteria\n')
             with self.assertRaisesRegex(Exception, 'empty sylph database'):
                 SylphDatabaseDirFmt(d, mode='r').validate()
+
+    def test_sketches_validation(self):
+        # TODO: this is AI-generated code; human review pending
+        with tempfile.TemporaryDirectory() as d:
+            open(os.path.join(d, 'sample-1.paired.sylsp'), 'wb').close()
+            with self.assertRaisesRegex(Exception, 'empty sylph sketch'):
+                SylphSketchesDirFmt(d, mode='r').validate()

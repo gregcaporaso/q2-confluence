@@ -8,13 +8,13 @@
 
 """sylph profiles as QIIME 2 artifacts.
 
-sylph (Shaw & Yu 2024) profiles reads by k-mer containment against a
-database of genomes; sylph-tax attaches a taxonomy and writes one
-.sylphmpa file per sample. The parser below turns those files into a
-genome-keyed taxonomy and two relative tables: taxonomic abundance
-(genome-size corrected, roughly a share of cells) and sequence abundance
-(share of reads, renormalized over the detected genomes when the unknown
-share was estimated).
+sylph (Shaw & Yu 2024) sketches reads once per sample and profiles the
+sketches by k-mer containment against a database of genomes; sylph-tax
+attaches a taxonomy and writes one .sylphmpa file per sample. The parser
+below turns those files into a genome-keyed taxonomy and two relative
+tables: taxonomic abundance (genome-size corrected, roughly a share of
+cells) and sequence abundance (share of reads, renormalized over the
+detected genomes when the unknown share was estimated).
 """
 
 import gzip
@@ -157,6 +157,39 @@ class SylphDatabaseDirFmt(model.DirectoryFormat):
         return os.path.join(str(self), paths[0])
 
 
+# --- sketches type -----------------------------------------------------------
+
+SylphSketches = SemanticType('SylphSketches')
+
+
+class SylphSketchFormat(model.BinaryFileFormat):
+    """One sample's read sketch (sylph sketch, .sylsp)."""
+
+    def _validate_(self, level):
+        # TODO: this is AI-generated code; human review pending
+        if os.path.getsize(str(self)) == 0:
+            raise model.ValidationError('empty sylph sketch')
+
+
+class SylphSketchesDirFmt(model.DirectoryFormat):
+    """Per-sample read sketches named <sample-id>.paired.sylsp, as sylph
+    sketch writes them for paired-end reads named with --lS."""
+    sketches = model.FileCollection(r'.+\.paired\.sylsp$',
+                                    format=SylphSketchFormat)
+
+    @sketches.set_path_maker
+    def _sketch_path(self, sample_id):
+        # TODO: this is AI-generated code; human review pending
+        return f'{sample_id}.paired.sylsp'
+
+    def sample_paths(self):
+        # TODO: this is AI-generated code; human review pending
+        """{sample id: sketch path}, sorted by sample id."""
+        suffix = '.paired.sylsp'
+        return {f[:-len(suffix)]: os.path.join(str(self), f)
+                for f in sorted(os.listdir(str(self))) if f.endswith(suffix)}
+
+
 # --- actions -----------------------------------------------------------------
 
 def _database_url(release):
@@ -190,14 +223,13 @@ def fetch_sylph_database(release: str) -> SylphDatabaseDirFmt:
     return fmt
 
 
-def profile_reads(reads: SingleLanePerSamplePairedEndFastqDirFmt,
-                  database: SylphDatabaseDirFmt, threads: int = 1,
-                  estimate_unknown: bool = True
-                  ) -> (biom.Table, biom.Table, pd.Series, qiime2.Metadata):
+def sketch_reads(reads: SingleLanePerSamplePairedEndFastqDirFmt,
+                 threads: int = 1) -> SylphSketchesDirFmt:
     # TODO: this is AI-generated code; human review pending
-    """sylph sketch, sylph profile, sylph-tax taxprof, then the parser."""
+    """sylph sketch of every sample's read pairs, named by sample ID."""
     manifest = reads.manifest.view(pd.DataFrame)
     samples = list(manifest.index)
+    sketches = SylphSketchesDirFmt()
     with tempfile.TemporaryDirectory() as work:
         lists = {}
         for name, column in [('l1', manifest['forward']),
@@ -206,14 +238,24 @@ def profile_reads(reads: SingleLanePerSamplePairedEndFastqDirFmt,
             lists[name] = os.path.join(work, name + '.txt')
             with open(lists[name], 'w') as fh:
                 fh.write('\n'.join(column.loc[samples]) + '\n')
-        sketches = os.path.join(work, 'sketches')
         _run(['sylph', 'sketch', '-t', str(threads), '--l1', lists['l1'],
-              '--l2', lists['l2'], '--lS', lists['names'], '-d', sketches])
+              '--l2', lists['l2'], '--lS', lists['names'], '-d', str(sketches)])
+    return sketches
+
+
+def profile_reads(sketches: SylphSketchesDirFmt, database: SylphDatabaseDirFmt,
+                  threads: int = 1, estimate_unknown: bool = True
+                  ) -> (biom.Table, biom.Table, pd.Series, qiime2.Metadata):
+    # TODO: this is AI-generated code; human review pending
+    """sylph profile of the sketches, sylph-tax taxprof, then the parser."""
+    paths = sketches.sample_paths()
+    samples = list(paths)
+    with tempfile.TemporaryDirectory() as work:
         profile = os.path.join(work, 'profile.tsv')
         _run(['sylph', 'profile', '-t', str(threads)]
              + (['-u'] if estimate_unknown else [])
              + ['-d', database.database_path(), '-o', profile]
-             + sorted(os.path.join(sketches, f) for f in os.listdir(sketches)))
+             + list(paths.values()))
         taxprof = os.path.join(work, 'taxprof')
         os.mkdir(taxprof)
         _run(['sylph-tax', 'taxprof', profile, '-t', str(database.taxonomy.view(

@@ -349,13 +349,28 @@ def _paired_reads_factory():
                                 'PairedEndFastqManifestPhred33V2')
 
 
+def _sketch_reads_example(use):
+    # TODO: this is AI-generated code; human review pending
+    reads = use.init_artifact('reads', _paired_reads_factory)
+    use.action(
+        use.UsageAction('confluence', 'sketch_reads'),
+        use.UsageInputs(reads=reads, threads=1),
+        use.UsageOutputNames(sketches='sketches'),
+    )
+
+
 def _profile_reads_example(use):
     # TODO: this is AI-generated code; human review pending
     reads = use.init_artifact('reads', _paired_reads_factory)
     database = use.init_artifact('sylph-database', _sylph_database_factory)
+    sketches, = use.action(
+        use.UsageAction('confluence', 'sketch_reads'),
+        use.UsageInputs(reads=reads, threads=1),
+        use.UsageOutputNames(sketches='sketches'),
+    )
     use.action(
         use.UsageAction('confluence', 'profile_reads'),
-        use.UsageInputs(reads=reads, database=database, threads=1),
+        use.UsageInputs(sketches=sketches, database=database, threads=1),
         use.UsageOutputNames(taxonomic_abundance='sylph-taxonomic-abundance',
                              sequence_abundance='sylph-sequence-abundance',
                              taxonomy='sylph-taxonomy', stats='sylph-stats'),

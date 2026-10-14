@@ -24,14 +24,17 @@ from q2_confluence._examples import (_relative_frequency_example,
                                      _merge_metadata_union,
                                      _paired_report_example,
                                      _profile_reads_example,
+                                     _sketch_reads_example,
                                      _summarize_inputs_two_studies)
 from q2_confluence._inputs import summarize_inputs
 from q2_confluence._integrate import integrate
 from q2_confluence._metadata import merge_metadata
 from q2_confluence._report import paired_report, summarize_paired_features
 from q2_confluence._sylph import (SylphDatabase, SylphDatabaseDirFmt, SylphDbFormat,
-                                  SylphTaxonomyFormat, fetch_sylph_database,
-                                  profile_reads)
+                                  SylphSketches, SylphSketchesDirFmt,
+                                  SylphSketchFormat, SylphTaxonomyFormat,
+                                  fetch_sylph_database, profile_reads,
+                                  sketch_reads)
 from q2_confluence._table import relative_frequency
 from q2_confluence._tree import gtdb_tree_collapse
 
@@ -194,12 +197,17 @@ plugin.pipelines.register_function(
     examples={'Amplicon and metagenome at genus': _integrate_at_genus},
 )
 
-plugin.register_formats(SylphDbFormat, SylphTaxonomyFormat, SylphDatabaseDirFmt)
-plugin.register_semantic_types(SylphDatabase)
+plugin.register_formats(SylphDbFormat, SylphTaxonomyFormat, SylphDatabaseDirFmt,
+                        SylphSketchFormat, SylphSketchesDirFmt)
+plugin.register_semantic_types(SylphDatabase, SylphSketches)
 plugin.register_artifact_class(
     SylphDatabase, SylphDatabaseDirFmt,
     description='A sylph genome sketch database with the sylph-tax taxonomy '
                 'of its genomes.')
+plugin.register_artifact_class(
+    SylphSketches, SylphSketchesDirFmt,
+    description='sylph read sketches, one per sample, which sylph profile and '
+                'sylph query consume.')
 
 plugin.methods.register_function(
     function=fetch_sylph_database,
@@ -222,8 +230,30 @@ plugin.methods.register_function(
 )
 
 plugin.methods.register_function(
+    function=sketch_reads,
+    inputs={'reads': SampleData[PairedEndSequencesWithQuality]},
+    parameters={'threads': Int % Range(1, None)},
+    outputs=[('sketches', SylphSketches)],
+    input_descriptions={
+        'reads': 'Paired-end reads per sample (quality-filtered, host reads '
+                 'removed).'},
+    parameter_descriptions={'threads': 'Threads for sylph sketch.'},
+    output_descriptions={
+        'sketches': 'One sketch per sample, named by sample ID.'},
+    name='Sketch reads for sylph',
+    description=(
+        'sylph sketch on every sample\'s read pairs: the k-mer sketch that both '
+        'profile-reads and query-reads consume, so reads are sketched once per '
+        'sample however many databases or queries follow. Provisional: '
+        'expected to move to MOSHPIT.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+    deprecated=True,
+    examples={'Sketch three samples': _sketch_reads_example},
+)
+
+plugin.methods.register_function(
     function=profile_reads,
-    inputs={'reads': SampleData[PairedEndSequencesWithQuality],
+    inputs={'sketches': SylphSketches,
             'database': SylphDatabase},
     parameters={'threads': Int % Range(1, None), 'estimate_unknown': Bool},
     outputs=[('taxonomic_abundance', FeatureTable[RelativeFrequency]),
@@ -231,11 +261,10 @@ plugin.methods.register_function(
              ('taxonomy', FeatureData[Taxonomy]),
              ('stats', ImmutableMetadata)],
     input_descriptions={
-        'reads': 'Paired-end reads per sample (quality-filtered, host reads '
-                 'removed).',
+        'sketches': 'The read sketches from sketch-reads.',
         'database': 'A sylph database with its taxonomy.'},
     parameter_descriptions={
-        'threads': 'Threads for sylph sketch and profile.',
+        'threads': 'Threads for sylph profile.',
         'estimate_unknown': 'Estimate the share of reads from no genome in the '
                             'database (sylph profile -u); it is reported per '
                             'sample as unknown-share and the sequence abundance '
@@ -252,13 +281,13 @@ plugin.methods.register_function(
                  'unknown share.'},
     name='Profile reads against a sylph database',
     description=(
-        'sylph sketch on every sample, sylph profile against the database, and '
+        'sylph profile of the sketches against the database, and '
         'sylph-tax taxprof with the database\'s taxonomy, parsed into '
         'genome-keyed tables. A sample in which sylph detects nothing keeps an '
         'all-zero column. Provisional: expected to move to MOSHPIT.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     deprecated=True,
-    examples={'Profile three samples against a two-genome database':
+    examples={'Sketch and profile three samples against a two-genome database':
               _profile_reads_example},
 )
 
