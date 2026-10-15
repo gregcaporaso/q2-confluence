@@ -20,6 +20,13 @@ def _collapsed_name(taxon: str, level: int, n_ranks: int) -> str:
     tokens (the longest string in the taxonomy), and the first `level`
     tokens are joined with ';'. Keeping this rule identical to q2-taxa's
     is what lets collapsed tree tips match collapsed table features.
+
+    The rule is the inner `_collapse` of `q2_taxa._util._collapse_table`
+    (q2-taxa 2026.7.0), with `n_ranks` playing `max_observed_level`, which
+    `q2_taxa._util._get_max_level` takes from the taxonomy passed to
+    `collapse`; `test_taxonomy` runs that function on the same strings. The
+    names agree as long as both taxonomies have at least `level` ranks,
+    which holds for the seven-rank GTDB strings used throughout.
     """
     tokens = [t.strip() for t in taxon.split(';')]
     tokens += ['__'] * (n_ranks - len(tokens))
