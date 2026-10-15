@@ -16,7 +16,7 @@ Everything the tutorial downloads or produces, the artifact cache included, live
 ```shell
 mkdir confluence-tutorial
 cd confluence-tutorial
-mkdir 16S wgs reference
+mkdir 16S wgs reference genus
 ```
 
 ## Data
@@ -245,4 +245,4 @@ qiime confluence paired-report \
 
 Bray-Curtis, Jaccard, unweighted and weighted UniFrac are computed on the proportions as they are, without rarefaction.
 The report holds, per metric, PERMANOVA by source and a PCoA scatter plot colored by source, then the random forest's confusion matrix and the per-feature summary.
-Repeat the collapse, integration and report with `--p-level 5` for the family-level view.
+Repeat the collapse, integration and report with `--p-level 5`, into a `family` directory, for the family-level view.
