@@ -487,5 +487,58 @@ def _paired_report_example(use):
                         cv=3, n_estimators=50, random_state=1),
         use.UsageOutputNames(report='paired-report',
                              distance_matrices='distance-matrices',
-                             feature_importance='feature-importance'),
+                             feature_importance='feature-importance',
+                             feature_summary='feature-summary'),
+    )
+
+
+# --- per-feature summary on its own: a merged relative table, its metadata,
+# --- and the random forest's importances, as integrate and paired-report
+# --- would produce them for three features of two sources
+
+_PAIRED_FEATURES = [_TAXONOMY['RS_GCF_1'].rsplit(';', 1)[0],
+                    _TAXONOMY['GB_GCA_3'].rsplit(';', 1)[0],
+                    _TAXONOMY['RS_GCF_4'].rsplit(';', 1)[0]]
+_PAIRED_MERGED_IDS = [f'{s}-{k}' for k in ('amplicon', 'metagenome')
+                      for s in _PAIRED_SAMPLES[:3]]
+
+
+def _paired_relative_table_factory():
+    # TODO: this is AI-generated code; human review pending
+    import biom
+    import numpy as np
+    data = np.array([[0.5, 0.6, 0.4, 0.3, 0.2, 0.3],    # shared
+                     [0.5, 0.4, 0.6, 0.0, 0.0, 0.0],    # amplicon only
+                     [0.0, 0.0, 0.0, 0.7, 0.8, 0.7]])   # metagenome only
+    table = biom.Table(data, _PAIRED_FEATURES, _PAIRED_MERGED_IDS)
+    return Artifact.import_data('FeatureTable[RelativeFrequency]', table)
+
+
+def _paired_integrated_metadata_factory():
+    # TODO: this is AI-generated code; human review pending
+    df = pd.DataFrame({'original-sample-id': _PAIRED_SAMPLES[:3] * 2,
+                       'source': ['amplicon'] * 3 + ['metagenome'] * 3},
+                      index=pd.Index(_PAIRED_MERGED_IDS, name='sample-id'))
+    return Artifact.import_data('ImmutableMetadata', Metadata(df))
+
+
+def _paired_importance_factory():
+    # TODO: this is AI-generated code; human review pending
+    df = pd.DataFrame({'importance': [0.1, 0.5, 0.4]},
+                      index=pd.Index(_PAIRED_FEATURES, name='feature-id'))
+    return Artifact.import_data('FeatureData[Importance]', df)
+
+
+def _summarize_paired_features_example(use):
+    # TODO: this is AI-generated code; human review pending
+    table = use.init_artifact('relative-table', _paired_relative_table_factory)
+    metadata = use.init_artifact('integrated-metadata',
+                                 _paired_integrated_metadata_factory)
+    importance = use.init_artifact('feature-importance', _paired_importance_factory)
+    metadata_md = use.view_as_metadata('integrated-metadata-md', metadata)
+    use.action(
+        use.UsageAction('confluence', 'summarize_paired_features'),
+        use.UsageInputs(table=table, importance=importance,
+                        metadata=metadata_md),
+        use.UsageOutputNames(feature_summary='feature-summary'),
     )

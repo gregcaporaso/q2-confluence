@@ -13,7 +13,6 @@ from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
 from q2_types.distance_matrix import DistanceMatrix
 from q2_types.metadata import ImmutableMetadata
 from q2_types.per_sample_sequences import PairedEndSequencesWithQuality
-from q2_sample_classifier import ClassifierPredictions
 from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
 
@@ -26,6 +25,7 @@ from q2_confluence._examples import (_relative_frequency_example,
                                      _profile_reads_example,
                                      _query_reads_example,
                                      _sketch_reads_example,
+                                     _summarize_paired_features_example,
                                      _summarize_inputs_two_studies)
 from q2_confluence._inputs import summarize_inputs
 from q2_confluence._integrate import integrate
@@ -336,27 +336,32 @@ plugin.methods.register_function(
     examples={'Query three samples for one genus': _query_reads_example},
 )
 
-plugin.visualizers.register_function(
+plugin.methods.register_function(
     function=summarize_paired_features,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency],
-            'importance': FeatureData[Importance],
-            'predictions': SampleData[ClassifierPredictions]},
+            'importance': FeatureData[Importance]},
     parameters={'metadata': Metadata},
+    outputs=[('feature_summary', ImmutableMetadata)],
     input_descriptions={
         'table': 'The integrated table of the paired samples.',
-        'importance': 'Feature importances from the random forest.',
-        'predictions': 'Cross-validated predictions of the source.'},
+        'importance': 'Feature importances from the random forest.'},
     parameter_descriptions={
         'metadata': 'The integrated metadata (columns source and '
                     'original-sample-id).'},
+    output_descriptions={
+        'feature_summary': 'One row per feature: importance and rank, '
+                           'mean-<source> and prevalence-<source> for every '
+                           'source, log2-<second>-over-<first>, and direction '
+                           '(shared or <source>-only).'},
     name='Summarize the features that separate the sources',
     description=(
         'Per feature: random-forest importance and rank, each source\'s mean '
         'relative abundance and prevalence, the log2 ratio between the first '
-        'two sources, and whether the feature is seen by one source only; '
-        'importance shares by direction and the cross-validated accuracy. '
-        'The full table is downloadable as a TSV.'
+        'two sources, and whether the feature is seen by one source only. '
+        'Metadata rather than a visualization, so it can be tabulated, '
+        'filtered with where clauses, or joined to a taxonomy.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+    examples={'Three features of two sources': _summarize_paired_features_example},
 )
 
 plugin.pipelines.register_function(
@@ -371,7 +376,8 @@ plugin.pipelines.register_function(
                 'n_jobs': Int % Range(1, None)},
     outputs=[('report', Visualization),
              ('distance_matrices', Collection[DistanceMatrix]),
-             ('feature_importance', FeatureData[Importance])],
+             ('feature_importance', FeatureData[Importance]),
+             ('feature_summary', ImmutableMetadata)],
     input_descriptions={
         'table': 'The relative table from integrate.',
         'tree': 'The reference tree collapsed to the same level.',
@@ -386,9 +392,12 @@ plugin.pipelines.register_function(
     output_descriptions={
         'report': 'One report: per metric, PERMANOVA by source and a PCoA '
                   'scatter plot; the random forest\'s confusion matrix; and '
-                  'the per-feature summary.',
+                  'the per-feature summary tabulated (every feature, '
+                  'searchable and sortable).',
         'distance_matrices': 'The distance matrices, keyed by metric.',
-        'feature_importance': 'The random forest\'s feature importances.'},
+        'feature_importance': 'The random forest\'s feature importances.',
+        'feature_summary': 'The per-feature summary (summarize-paired-features) '
+                           'as metadata.'},
     name='Compare the sources on the samples every source profiled',
     description=(
         'Keeps the samples whose original ID is present in every source and '

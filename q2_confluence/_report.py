@@ -6,17 +6,12 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import importlib.resources
-import os
-
 import biom
 import numpy as np
 import pandas as pd
 import qiime2
-import q2templates
 from q2templates.reports import matryoshka_template
 
-_ASSETS = importlib.resources.files('q2_confluence') / 'assets'
 EPS = 1e-9
 
 
@@ -63,6 +58,7 @@ def paired_report(ctx, table, tree, metadata, permutations=999, cv=10,
     classify = ctx.get_action('sample_classifier', 'classify_samples_ncv')
     confusion = ctx.get_action('sample_classifier', 'confusion_matrix')
     summarize = ctx.get_action('confluence', 'summarize_paired_features')
+    tabulate = ctx.get_action('metadata', 'tabulate')
 
     table, = filter_samples(table=table, metadata=kept_md)
     table, = filter_features(table=table, min_samples=1)
@@ -89,18 +85,20 @@ def paired_report(ctx, table, tree, metadata, permutations=999, cv=10,
     sections['Random forest: confusion matrix (nested cross-validation)'], = \
         confusion(predictions=rf.predictions, probabilities=rf.probabilities,
                   truth=source_col)
-    sections['Per-feature summary'], = summarize(
-        table=table, importance=rf.feature_importance,
-        predictions=rf.predictions, metadata=kept_md)
+    summary, = summarize(table=table, importance=rf.feature_importance,
+                         metadata=kept_md)
+    sections['Per-feature summary'], = tabulate(
+        input=summary.view(qiime2.Metadata))   # the artifact stays in provenance
     report = ctx.make_report(matryoshka_template, sections)
-    return report, distance_matrices, rf.feature_importance
+    return report, distance_matrices, rf.feature_importance, summary
 
 
-def summarize_paired_features(output_dir: str, table: biom.Table,
-                              importance: pd.DataFrame, predictions: pd.Series,
-                              metadata: qiime2.Metadata) -> None:
+def summarize_paired_features(table: biom.Table, importance: pd.DataFrame,
+                              metadata: qiime2.Metadata) -> qiime2.Metadata:
     # TODO: this is AI-generated code; human review pending
-    """Importance next to each source's abundance and prevalence per feature."""
+    """Per feature: importance and rank, each source's mean relative
+    abundance and prevalence, the log2 ratio of the first two sources, and
+    whether the feature is seen by one source only."""
     md = metadata.to_dataframe()
     source = md['source']
     sources = sorted(source.unique())
@@ -121,18 +119,4 @@ def summarize_paired_features(output_dir: str, table: biom.Table,
     out['direction'] = 'shared'
     for s in sources:
         out.loc[only[s], 'direction'] = f'{s}-only'
-    out = out.sort_values('rank')
-    out.to_csv(os.path.join(output_dir, 'feature-summary.tsv'), sep='\t')
-
-    truth = source.reindex(predictions.index)
-    accuracy = float((predictions == truth).mean())
-    share = (out.groupby('direction')['importance'].sum()
-             / out['importance'].sum()).rename('importance share').to_frame()
-    share['features'] = out.groupby('direction').size()
-    html = dict(classes='table table-striped', border=0, float_format='%.4g')
-    q2templates.render(str(_ASSETS / 'paired_features' / 'index.html'), output_dir,
-                       context={'accuracy': f'{accuracy:.2f}',
-                                'n_samples': len(predictions),
-                                'sources': ', '.join(sources),
-                                'share': share.to_html(**html),
-                                'top': out.head(50).to_html(**html)})
+    return qiime2.Metadata(out.sort_values('rank'))

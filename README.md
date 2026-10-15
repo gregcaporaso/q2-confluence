@@ -21,8 +21,8 @@ The workflow, in order (`qiime confluence <action> --help` for the details):
 | `merge-metadata` | Union or intersection of several studies' metadata | stays |
 | `relative-frequency` | Proportions from counts or from a relative table whose features were filtered; `integrate` applies it to every source | provisional, intended for q2-feature-table |
 | `integrate` | Every source (counts or proportions) collapsed to the level, unnamed features dropped, renormalized, merged with `original-sample-id` and `source` metadata columns; sample IDs become `<id>-<key>` | stays |
-| `paired-report` | On the samples every source profiled: Bray-Curtis, Jaccard and UniFrac on the proportions (no rarefaction), PERMANOVA by source and a PCoA scatter plot per metric, random forest with nested cross-validation, per-feature summary, one report | stays |
-| `summarize-paired-features` | The per-feature summary on its own | stays |
+| `paired-report` | On the samples every source profiled: Bray-Curtis, Jaccard and UniFrac on the proportions (no rarefaction), PERMANOVA by source and a PCoA scatter plot per metric, random forest with nested cross-validation, per-feature summary (every feature, searchable), one report plus the summary as metadata | stays |
+| `summarize-paired-features` | The per-feature summary (importance, rank, per-source mean and prevalence, log2 ratio, direction) as `ImmutableMetadata`; `paired-report` tabulates it | stays |
 
 The amplicon side (denoising, GTDB classification, the SILVA-based organelle filter) and the metagenome read preparation (trimming, host read removal) are stock QIIME 2 and MOSHPIT actions and are described in the documentation rather than wrapped here.
 Every action carries a usage example that the test suite executes.
