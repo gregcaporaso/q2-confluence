@@ -268,6 +268,62 @@ def profile_reads(sketches: SylphSketchesDirFmt, database: SylphDatabaseDirFmt,
     return rel, seq, tax, qiime2.Metadata(stats)
 
 
+def _read_taxonomy(database):
+    # TODO: this is AI-generated code; human review pending
+    """{accession: taxonomy string} from the database's sylph-tax taxonomy."""
+    path = str(database.taxonomy.view(SylphTaxonomyFormat))
+    df = pd.read_csv(path, sep='\t', header=None, index_col=0, dtype=str)
+    return df.iloc[:, 0].to_dict()
+
+
+def _query_to_metadata(path, taxonomy, targets=None):
+    # TODO: this is AI-generated code; human review pending
+    """sylph query output -> one row per sample and genome, ID
+    '<sample>-<accession>' (sample-id is reserved for the ID header), the
+    taxonomy joined by accession, and the
+    5-95 percentile interval split into two numeric columns (NA -> missing).
+    `targets`: keep only rows whose taxonomy or accession contains one."""
+    try:
+        df = pd.read_csv(path, sep='\t', dtype=str)
+    except pd.errors.EmptyDataError:
+        df = pd.DataFrame()
+    if df.empty:
+        raise ValueError('sylph query reported no genome with enough sampled '
+                         'k-mers in any sample')
+    out = pd.DataFrame({'sample': df['Sample_file'],
+                        'accession': df['Genome_file'].map(_accession)})
+    out['taxonomy'] = out['accession'].map(taxonomy)
+    out['adjusted-ani'] = pd.to_numeric(df['Adjusted_ANI'])
+    out['effective-coverage'] = pd.to_numeric(df['Eff_cov'])
+    interval = df['ANI_5-95_percentile'].str.split('-', n=1, expand=True)
+    out['ani-5-percentile'] = pd.to_numeric(interval[0], errors='coerce')
+    out['ani-95-percentile'] = pd.to_numeric(interval[1], errors='coerce')
+    out['containment-index'] = df['Containment_ind']
+    out['naive-ani'] = pd.to_numeric(df['Naive_ANI'])
+    if targets:
+        lineage = out['taxonomy'].fillna('') + ' ' + out['accession']
+        out = out[lineage.apply(lambda s: any(t in s for t in targets))]
+        if out.empty:
+            raise ValueError(f'no reported genome matches the targets {targets}')
+    out = out.sort_values(['sample', 'accession'])
+    out.index = pd.Index(out['sample'] + '-' + out['accession'], name='id')
+    return qiime2.Metadata(out)
+
+
+def query_reads(sketches: SylphSketchesDirFmt, database: SylphDatabaseDirFmt,
+                threads: int = 1, min_kmers: int = 50,
+                targets: list = None) -> qiime2.Metadata:
+    # TODO: this is AI-generated code; human review pending
+    """sylph query of the sketches against the database, then the parser."""
+    with tempfile.TemporaryDirectory() as work:
+        out = os.path.join(work, 'query.tsv')
+        _run(['sylph', 'query', '-t', str(threads),
+              '--min-number-kmers', str(min_kmers),
+              '-d', database.database_path(), '-o', out]
+             + list(sketches.sample_paths().values()))
+        return _query_to_metadata(out, _read_taxonomy(database), targets)
+
+
 def _run(cmd, env=None):
     # TODO: this is AI-generated code; human review pending
     subprocess.run(cmd, check=True, env=env, stdout=subprocess.DEVNULL,

@@ -15,6 +15,7 @@ The workflow, in order (`qiime confluence <action> --help` for the details):
 | `fetch-sylph-database` | Pre-built sylph database of the GTDB species representatives (226 or 232) with its sylph-tax taxonomy | provisional, intended for MOSHPIT |
 | `sketch-reads` | sylph sketch of paired-end reads, one sketch per sample (`SylphSketches`), consumed by `profile-reads` | provisional, intended for MOSHPIT |
 | `profile-reads` | sylph profile and taxprof on the sketches: genome-keyed taxonomic and sequence abundance tables, taxonomy, per-sample stats | provisional, intended for MOSHPIT |
+| `query-reads` | sylph query on the sketches: containment ANI, coverage and ANI interval of every database genome with enough k-mers in a sample, taxonomy joined, as `ImmutableMetadata` (one row per sample and genome); `targets` keeps lineages of interest | provisional, intended for MOSHPIT |
 | `gtdb-tree-collapse` | A reference tree collapsed to one tip per taxon at a level, named like `taxa collapse` IDs; once per release and level | provisional, intended for q2-phylogeny |
 | `summarize-inputs` | Which sample IDs the tables and metadata of the studies share | stays |
 | `merge-metadata` | Union or intersection of several studies' metadata | stays |

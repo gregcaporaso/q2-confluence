@@ -6,8 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from qiime2.plugin import (Bool, Choices, Citations, Collection, Int, Metadata,
-                           Plugin, Range, Str, Visualization)
+from qiime2.plugin import (Bool, Choices, Citations, Collection, Int, List,
+                           Metadata, Plugin, Range, Str, Visualization)
 from q2_types.feature_data import FeatureData, Importance, Taxonomy
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
 from q2_types.distance_matrix import DistanceMatrix
@@ -24,6 +24,7 @@ from q2_confluence._examples import (_relative_frequency_example,
                                      _merge_metadata_union,
                                      _paired_report_example,
                                      _profile_reads_example,
+                                     _query_reads_example,
                                      _sketch_reads_example,
                                      _summarize_inputs_two_studies)
 from q2_confluence._inputs import summarize_inputs
@@ -34,7 +35,7 @@ from q2_confluence._sylph import (SylphDatabase, SylphDatabaseDirFmt, SylphDbFor
                                   SylphSketches, SylphSketchesDirFmt,
                                   SylphSketchFormat, SylphTaxonomyFormat,
                                   fetch_sylph_database, profile_reads,
-                                  sketch_reads)
+                                  query_reads, sketch_reads)
 from q2_confluence._table import relative_frequency
 from q2_confluence._tree import gtdb_tree_collapse
 
@@ -289,6 +290,47 @@ plugin.methods.register_function(
     deprecated=True,
     examples={'Sketch and profile three samples against a two-genome database':
               _profile_reads_example},
+)
+
+plugin.methods.register_function(
+    function=query_reads,
+    inputs={'sketches': SylphSketches, 'database': SylphDatabase},
+    parameters={'threads': Int % Range(1, None),
+                'min_kmers': Int % Range(1, None),
+                'targets': List[Str]},
+    outputs=[('query', ImmutableMetadata)],
+    input_descriptions={
+        'sketches': 'The read sketches from sketch-reads.',
+        'database': 'A sylph database with its taxonomy.'},
+    parameter_descriptions={
+        'threads': 'Threads for sylph query.',
+        'min_kmers': 'A genome is reported in a sample when at least this many '
+                     'of its sampled k-mers are present there (sylph query '
+                     '--min-number-kmers).',
+        'targets': 'Keep only the genomes whose taxonomy string or accession '
+                   'contains one of these, e.g. g__Escherichia; or '
+                   'GCF_000005845.2. Default: every reported genome.'},
+    output_descriptions={
+        'query': 'One row per sample and genome, ID <sample-id>-<accession>: '
+                 'sample, accession, taxonomy, adjusted-ani, '
+                 'effective-coverage, ani-5-percentile and ani-95-percentile '
+                 '(missing when sylph reports NA), containment-index '
+                 '(contained/sampled k-mers), naive-ani.'},
+    name='Containment ANI of the database genomes in every sample',
+    description=(
+        'sylph query of the sketches against the database. Unlike sylph '
+        'profile it reassigns no k-mers and applies no 95% ANI cutoff, so it '
+        'reports every genome with enough sampled k-mers present in a sample, '
+        'at any adjusted ANI from 90 (sylph\'s default minimum for query), '
+        'and each genome\'s row is independent of the other genomes. Rows are '
+        'not additive, so the result is metadata, not a feature table. Below '
+        'about 0.1x effective coverage the adjusted ANI overshoots and its '
+        '5-95 percentile interval can reach above 100: read the interval and '
+        'the coverage together, not the point estimate alone. Provisional: '
+        'expected to move to MOSHPIT.'
+        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+    deprecated=True,
+    examples={'Query three samples for one genus': _query_reads_example},
 )
 
 plugin.visualizers.register_function(

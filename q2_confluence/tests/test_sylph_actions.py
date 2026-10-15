@@ -65,6 +65,48 @@ class ProfileReadsTests(TestPluginBase):
         self.assertAlmostEqual(seq.sum(axis='sample')[1], 1.0)
 
 
+class QueryReadsTests(TestPluginBase):
+    package = 'q2_confluence.tests'
+
+    def setUp(self):
+        # TODO: this is AI-generated code; human review pending
+        super().setUp()
+        self.sketches, = self.plugin.methods['sketch_reads'](
+            ex._paired_reads_factory(), threads=1)
+        self.database = ex._sylph_database_factory()
+        self.query = self.plugin.methods['query_reads']
+
+    def test_query(self):
+        # TODO: this is AI-generated code; human review pending
+        query, = self.query(self.sketches, self.database, threads=1)
+        df = query.view(qiime2.Metadata).to_dataframe()
+        # sample-3 holds reads from a genome the database lacks: no row
+        self.assertEqual(list(df.index), ['sample-1-GCF_000001.1',
+                                          'sample-2-GCF_000001.1',
+                                          'sample-2-GCF_000002.1'])
+        self.assertEqual(df.loc['sample-2-GCF_000002.1', 'sample'], 'sample-2')
+        self.assertEqual(df.loc['sample-2-GCF_000002.1', 'accession'],
+                         'GCF_000002.1')
+        self.assertEqual(df.loc['sample-2-GCF_000002.1', 'taxonomy'],
+                         ex._TAXONOMY['RS_GCF_1'])
+        self.assertAlmostEqual(df.loc['sample-1-GCF_000001.1', 'adjusted-ani'],
+                               100.0, delta=0.1)
+        self.assertGreater(df.loc['sample-1-GCF_000001.1', 'effective-coverage'],
+                           1.0)
+        self.assertRegex(df.loc['sample-1-GCF_000001.1', 'containment-index'],
+                         r'^\d+/\d+$')
+
+    def test_targets(self):
+        # TODO: this is AI-generated code; human review pending
+        query, = self.query(self.sketches, self.database, threads=1,
+                            targets=['g__Blautia;'])
+        df = query.view(qiime2.Metadata).to_dataframe()
+        self.assertEqual(list(df.index), ['sample-2-GCF_000002.1'])
+        with self.assertRaisesRegex(ValueError, 'no reported genome matches'):
+            self.query(self.sketches, self.database, threads=1,
+                       targets=['g__Escherichia;'])
+
+
 class FetchSylphDatabaseTests(TestPluginBase):
     package = 'q2_confluence.tests'
 

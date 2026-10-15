@@ -377,6 +377,23 @@ def _profile_reads_example(use):
     )
 
 
+def _query_reads_example(use):
+    # TODO: this is AI-generated code; human review pending
+    reads = use.init_artifact('reads', _paired_reads_factory)
+    database = use.init_artifact('sylph-database', _sylph_database_factory)
+    sketches, = use.action(
+        use.UsageAction('confluence', 'sketch_reads'),
+        use.UsageInputs(reads=reads, threads=1),
+        use.UsageOutputNames(sketches='sketches'),
+    )
+    use.action(
+        use.UsageAction('confluence', 'query_reads'),
+        use.UsageInputs(sketches=sketches, database=database, threads=1,
+                        targets=['g__Bacillus;']),
+        use.UsageOutputNames(query='bacillus-query'),
+    )
+
+
 # --- paired study: six samples profiled by both sources ----------------------
 
 _PAIRED_SAMPLES = [f'sample-{i}' for i in range(1, 7)]
