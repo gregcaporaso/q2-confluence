@@ -98,7 +98,7 @@ def _check_tips(table, tree):
     t = skbio.TreeNode.read(str(newick), format='newick',
                             convert_underscores=False, verify=False)
     tips = {n.name for n in t.tips()}
-    missing = [i for i in table.view(biom.Table).ids(axis='observation')
+    missing = [str(i) for i in table.view(biom.Table).ids(axis='observation')
                if i not in tips]
     if missing:
         raise ValueError(f'{len(missing)} features are not tips of the tree, e.g. '

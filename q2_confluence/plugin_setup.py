@@ -184,8 +184,11 @@ plugin.pipelines.register_function(
                           'dropped, as proportions; sample IDs are <id>-<key>.',
         'taxonomy': 'The taxonomy of the merged features (their IDs).',
         'integrated_metadata': 'One row per merged sample: original-sample-id, '
-                    'source (the key), unassigned-share (dropped at the level), '
-                    'and the union of the studies\' metadata.'},
+                    'source (the key), unassigned-share (the share of the '
+                    'sample\'s total in its source table, i.e. of its Bacteria '
+                    'reads after the recommended filter, that has no name at '
+                    'the level and was dropped), and the union of the '
+                    'studies\' metadata.'},
     name='Integrate profiles at one taxonomic level',
     description=(
         'For each source: taxa collapse to the level, drop the features without '
