@@ -7,7 +7,17 @@ samples with both 16S V4 amplicon and shotgun metagenome data, GTDB r232),
 with one-line captions. -->
 
 Stock QIIME 2 and MOSHPIT actions prepare each side; `confluence` actions start at the reference tree.
-Commands assume a working directory with `16S/`, `wgs/` and `reference/` subdirectories and the `q2-confluence` environment active.
+Commands assume the `q2-confluence` environment is active.
+
+## Working directory
+
+Everything the tutorial downloads or produces, the artifact cache included, lives under one directory.
+
+```shell
+mkdir confluence-tutorial
+cd confluence-tutorial
+mkdir 16S wgs reference
+```
 
 ## Data
 
@@ -16,7 +26,6 @@ The shotgun reads are already trimmed, control-free and human-read-free, and sub
 The 16S artifacts are the unfiltered DADA2 outputs of the whole study (199 samples); the organelle filter below is part of the workflow.
 
 ```shell
-mkdir -p 16S wgs reference
 D='https://drive.usercontent.google.com/download?export=download&confirm=t&id='
 wget -O wgs/wgs-subset-reads.qza "${D}1fkzsYoWAIeGOJDQrdqGcf5k5rNfoFR7E"
 wget -O 16S/asv-table.qza "${D}1-mcm1_ngVVuysqgJyURKaOTEI0OV1vee"
@@ -25,18 +34,18 @@ wget -O sample-metadata.tsv "${D}1BgqmKoAfQpUmlKA9Mc86FK8uCnB7fX-l"
 md5sum wgs/wgs-subset-reads.qza 16S/asv-table.qza 16S/asv-sequences.qza sample-metadata.tsv
 ```
 
-| File | Size | md5 |
-|---|---|---|
-| `wgs/wgs-subset-reads.qza` | 4.8 GB | `884d47f6948d010356cde49594238b3f` |
-| `16S/asv-table.qza` | 2.7 MB | `48d9f13d671e30714b3aad3f8665ec98` |
-| `16S/asv-sequences.qza` | 2.7 MB | `cdd603a2e8dae3d9f2fb643a81ae50b2` |
-| `sample-metadata.tsv` | 37 KB | `f0523491b674cb19383ebbc3f7780778` |
+| File | Size | md5 | Artifact UUID (`qiime tools peek`) |
+|---|---|---|---|
+| `wgs/wgs-subset-reads.qza` | 4.8 GB | `884d47f6948d010356cde49594238b3f` | `09901ee0-9bca-4825-b94a-20c953d97cef` |
+| `16S/asv-table.qza` | 2.7 MB | `48d9f13d671e30714b3aad3f8665ec98` | `c24a9747-46fe-456e-bb74-6bc5799a7710` |
+| `16S/asv-sequences.qza` | 2.7 MB | `cdd603a2e8dae3d9f2fb643a81ae50b2` | `b74df7ea-a4a8-4aa4-95c6-869f955d4444` |
+| `sample-metadata.tsv` | 37 KB | `f0523491b674cb19383ebbc3f7780778` | |
 
 The reads artifact carries the provenance of the import, trimming, control removal, host-read removal and subsampling described under "Metagenome side".
 
 Two of the artifacts in this workflow are large (the sylph database is about 20 GB, the read sketches a few GB), and every action that reads a `.qza` unzips it first.
 An [artifact cache](https://use.qiime2.org/en/stable/tutorials/use-the-artifact-cache/) keeps artifacts unzipped under a key, referenced as `cache:key` in place of a file path, so the large ones are written once and never unzipped again.
-The commands below keep the database and the sketches in a cache called `cache` and pass `--use-cache cache` to the actions that read them; the downloaded artifacts stay as `.qza` files, with their provenance.
+The commands below keep the database and the sketches in a cache called `cache` inside the tutorial directory and pass `--use-cache cache` to the actions that read them; the downloaded artifacts stay as `.qza` files, with their provenance.
 For your own data, `qiime tools cache-import` imports a large input (a read manifest, a database directory) straight into a cache key, so it is never zipped at all.
 
 ```shell
