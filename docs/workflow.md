@@ -184,48 +184,40 @@ The taxonomic abundance (genome-size corrected) is the measure to integrate; the
 ## Integration
 
 The reference tree is the bacterial GTDB tree, so each source is first restricted to Bacteria; `integrate` refuses any feature that is not a tip of the tree, and both the amplicon and the sylph profile hold archaeal genera.
-Collections are passed as directories, one artifact per key.
 
 ```shell
-mkdir -p tables taxonomies metadata
 qiime taxa filter-table \
   --i-table 16S/asv-table-noorganelles.qza \
   --i-taxonomy 16S/asv-taxonomy-gtdb.qza \
   --p-include d__Bacteria \
   --p-mode contains \
-  --o-filtered-table tables/amplicon.qza
+  --o-filtered-table 16S/asv-table-bacteria.qza
 qiime taxa filter-table \
   --i-table wgs/sylph-taxonomic-abundance.qza \
   --i-taxonomy wgs/sylph-taxonomy.qza \
   --p-include d__Bacteria \
   --p-mode contains \
-  --o-filtered-table tables/metagenome.qza
-cp 16S/asv-taxonomy-gtdb.qza taxonomies/amplicon.qza
-cp wgs/sylph-taxonomy.qza    taxonomies/metagenome.qza
+  --o-filtered-table wgs/sylph-bacteria.qza
 
 qiime tools import \
   --type ImmutableMetadata \
   --input-path sample-metadata.tsv \
-  --output-path metadata/study.qza
-
-printf 'amplicon\nmetagenome\n' | tee tables/.order > taxonomies/.order
-printf 'study\n' > metadata/.order
+  --output-path study-metadata.qza
 ```
 
-The `.order` file in each directory names the keys; without one, QIIME 2 keys the collection by file name, and the sources would be called `amplicon.qza` and `metagenome.qza` in every output.
+A collection input takes each member as `key:path`; the keys name the sources in every output.
 
 ```shell
-
 qiime confluence summarize-inputs \
-  --i-tables tables/ \
-  --i-metadata metadata/ \
+  --i-tables amplicon:16S/asv-table-bacteria.qza metagenome:wgs/sylph-bacteria.qza \
+  --i-metadata study:study-metadata.qza \
   --o-visualization inputs-summary.qzv
 
 qiime confluence integrate \
-  --i-tables tables/ \
-  --i-taxonomies taxonomies/ \
+  --i-tables amplicon:16S/asv-table-bacteria.qza metagenome:wgs/sylph-bacteria.qza \
+  --i-taxonomies amplicon:16S/asv-taxonomy-gtdb.qza metagenome:wgs/sylph-taxonomy.qza \
   --i-tree reference/gtdb-r232-genus-tree.qza \
-  --i-metadata metadata/ \
+  --i-metadata study:study-metadata.qza \
   --p-level 6 \
   --o-relative-table genus/relative-table.qza \
   --o-taxonomy genus/taxonomy.qza \
