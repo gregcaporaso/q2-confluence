@@ -36,7 +36,8 @@ The reads artifact carries the provenance of the import, trimming, control remov
 
 Two of the artifacts in this workflow are large (the sylph database is about 20 GB, the read sketches a few GB), and every action that reads a `.qza` unzips it first.
 An [artifact cache](https://use.qiime2.org/en/stable/tutorials/use-the-artifact-cache/) keeps artifacts unzipped under a key, referenced as `cache:key` in place of a file path, so the large ones are written once and never unzipped again.
-The commands below keep the database and the sketches in a cache called `cache` and pass `--use-cache cache` to the actions that read them.
+The commands below keep the database and the sketches in a cache called `cache` and pass `--use-cache cache` to the actions that read them; the downloaded artifacts stay as `.qza` files, with their provenance.
+For your own data, `qiime tools cache-import` imports a large input (a read manifest, a database directory) straight into a cache key, so it is never zipped at all.
 
 ```shell
 qiime tools cache-create --cache cache
