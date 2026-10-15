@@ -183,14 +183,25 @@ The taxonomic abundance (genome-size corrected) is the measure to integrate; the
 
 ## Integration
 
+The reference tree is the bacterial GTDB tree, so each source is first restricted to Bacteria; `integrate` refuses any feature that is not a tip of the tree, and both the amplicon and the sylph profile hold archaeal genera.
 Collections are passed as directories whose file names are the keys.
 
 ```shell
 mkdir -p tables taxonomies metadata
-cp 16S/asv-table-noorganelles.qza tables/amplicon.qza
-cp wgs/sylph-taxonomic-abundance.qza tables/metagenome.qza
-cp 16S/asv-taxonomy-gtdb.qza     taxonomies/amplicon.qza
-cp wgs/sylph-taxonomy.qza        taxonomies/metagenome.qza
+qiime taxa filter-table \
+  --i-table 16S/asv-table-noorganelles.qza \
+  --i-taxonomy 16S/asv-taxonomy-gtdb.qza \
+  --p-include d__Bacteria \
+  --p-mode contains \
+  --o-filtered-table tables/amplicon.qza
+qiime taxa filter-table \
+  --i-table wgs/sylph-taxonomic-abundance.qza \
+  --i-taxonomy wgs/sylph-taxonomy.qza \
+  --p-include d__Bacteria \
+  --p-mode contains \
+  --o-filtered-table tables/metagenome.qza
+cp 16S/asv-taxonomy-gtdb.qza taxonomies/amplicon.qza
+cp wgs/sylph-taxonomy.qza    taxonomies/metagenome.qza
 
 qiime tools import \
   --type ImmutableMetadata \
