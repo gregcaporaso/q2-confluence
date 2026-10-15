@@ -34,6 +34,14 @@ md5sum wgs/wgs-subset-reads.qza 16S/asv-table.qza 16S/asv-sequences.qza sample-m
 
 The reads artifact carries the provenance of the import, trimming, control removal, host-read removal and subsampling described under "Metagenome side".
 
+Two of the artifacts in this workflow are large (the sylph database is about 20 GB, the read sketches a few GB), and every action that reads a `.qza` unzips it first.
+An [artifact cache](https://use.qiime2.org/en/stable/tutorials/use-the-artifact-cache/) keeps artifacts unzipped under a key, referenced as `cache:key` in place of a file path, so the large ones are written once and never unzipped again.
+The commands below keep the database and the sketches in a cache called `cache` and pass `--use-cache cache` to the actions that read them.
+
+```shell
+qiime tools cache-create --cache cache
+```
+
 The reference files come from their sources: the GTDB r232 bacterial tree and genome taxonomy, the GTDB r232 naive Bayes classifier from the rachis Zenodo record, and the SILVA 144 V4 uniform classifier from SILVA.
 
 ```shell
@@ -133,22 +141,32 @@ mosh quality-control filter-reads-human-pangenome \
 The index build downloads GRCh38 and the HPRC pangenome and takes hours the first time (on a 16-core server: 4 h to build at 50 GB peak, then 5 h 42 min to filter 393 million pairs at 58 GB peak, removing 3.8% of them); pass `--i-index reference/human-pangenome-bowtie2.qza` on later runs.
 The subset was then drawn with `qiime demux subsample-paired --p-fraction 0.1`.
 
-Then the sylph profile, two `confluence` actions, on the subset (minutes; the full data took 3 min at 4.7 GB peak).
+Then the sylph profile, three `confluence` actions, on the subset (minutes; the full data took 3 min at 4.7 GB peak).
 
 ```shell
 qiime confluence fetch-sylph-database \
   --p-release 232 \
-  --o-database reference/sylph-gtdb-r232.qza
+  --use-cache cache \
+  --o-database cache:sylph-gtdb-r232
+
+qiime confluence sketch-reads \
+  --i-reads wgs/wgs-subset-reads.qza \
+  --p-threads 16 \
+  --use-cache cache \
+  --o-sketches cache:sketches
 
 qiime confluence profile-reads \
-  --i-reads wgs/wgs-subset-reads.qza \
-  --i-database reference/sylph-gtdb-r232.qza \
+  --i-sketches cache:sketches \
+  --i-database cache:sylph-gtdb-r232 \
   --p-threads 16 \
+  --use-cache cache \
   --o-taxonomic-abundance wgs/sylph-taxonomic-abundance.qza \
   --o-sequence-abundance wgs/sylph-sequence-abundance.qza \
   --o-taxonomy wgs/sylph-taxonomy.qza \
   --o-stats wgs/sylph-stats.qza
 ```
+
+The sketches are made once per sample and serve every later profile or query against any database.
 
 The taxonomic abundance (genome-size corrected) is the measure to integrate; the sequence abundance (read share) is kept alongside.
 `sylph-stats` holds, per sample, the genomes and genera detected, the median ANI and the unknown share.
