@@ -184,7 +184,7 @@ The taxonomic abundance (genome-size corrected) is the measure to integrate; the
 ## Integration
 
 The reference tree is the bacterial GTDB tree, so each source is first restricted to Bacteria; `integrate` refuses any feature that is not a tip of the tree, and both the amplicon and the sylph profile hold archaeal genera.
-Collections are passed as directories whose file names are the keys.
+Collections are passed as directories, one artifact per key.
 
 ```shell
 mkdir -p tables taxonomies metadata
@@ -207,6 +207,14 @@ qiime tools import \
   --type ImmutableMetadata \
   --input-path sample-metadata.tsv \
   --output-path metadata/study.qza
+
+printf 'amplicon\nmetagenome\n' | tee tables/.order > taxonomies/.order
+printf 'study\n' > metadata/.order
+```
+
+The `.order` file in each directory names the keys; without one, QIIME 2 keys the collection by file name, and the sources would be called `amplicon.qza` and `metagenome.qza` in every output.
+
+```shell
 
 qiime confluence summarize-inputs \
   --i-tables tables/ \
