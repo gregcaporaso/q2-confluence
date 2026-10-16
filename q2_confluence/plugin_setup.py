@@ -184,7 +184,7 @@ plugin.pipelines.register_function(
                           'dropped, as proportions; sample IDs are <id>-<key>.',
         'taxonomy': 'The taxonomy of the merged features (their IDs).',
         'integrated_metadata': 'One row per merged sample: original-sample-id, '
-                    'source (the key), unassigned-share (the share of the '
+                    'profile-type (the key), unassigned-share (the share of the '
                     'sample\'s total in its source table, i.e. of its Bacteria '
                     'reads after the recommended filter, that has no name at '
                     'the level and was dropped), and the union of the '
@@ -346,13 +346,13 @@ plugin.methods.register_function(
         'table': 'The integrated table of the paired samples.',
         'importance': 'Feature importances from the random forest.'},
     parameter_descriptions={
-        'metadata': 'The integrated metadata (columns source and '
+        'metadata': 'The integrated metadata (columns profile-type and '
                     'original-sample-id).'},
     output_descriptions={
         'feature_summary': 'One row per feature: importance and rank, '
-                           'mean-<source> and prevalence-<source> for every '
-                           'source, log2-<second>-over-<first>, and direction '
-                           '(shared or <source>-only).'},
+                           'mean-<profile-type> and prevalence-<profile-type> '
+                           'for every profile type, log2-<second>-over-<first>, '
+                           'and direction (shared or <profile-type>-only).'},
     name='Summarize the features that separate the sources',
     description=(
         'Per feature: random-forest importance and rank, each source\'s mean '
@@ -381,7 +381,7 @@ plugin.pipelines.register_function(
     input_descriptions={
         'table': 'The relative table from integrate.',
         'tree': 'The reference tree collapsed to the same level.',
-        'metadata': 'The metadata from integrate (source and '
+        'metadata': 'The metadata from integrate (profile-type and '
                     'original-sample-id).'},
     parameter_descriptions={
         'permutations': 'PERMANOVA permutations.',
@@ -390,7 +390,7 @@ plugin.pipelines.register_function(
         'random_state': 'Seed for the forest.',
         'n_jobs': 'Threads for the random forest.'},
     output_descriptions={
-        'report': 'One report: per metric, PERMANOVA by source and a PCoA '
+        'report': 'One report: per metric, PERMANOVA by profile type and a PCoA '
                   'scatter plot; the random forest\'s confusion matrix; and '
                   'the per-feature summary tabulated (every feature, '
                   'searchable and sortable).',
@@ -402,9 +402,9 @@ plugin.pipelines.register_function(
     description=(
         'Keeps the samples whose original ID is present in every source and '
         'computes Bray-Curtis, Jaccard, unweighted and weighted UniFrac on the '
-        'proportions as they are (no rarefaction), with PERMANOVA by source '
+        'proportions as they are (no rarefaction), with PERMANOVA by profile type '
         'and a PCoA scatter plot for each; then a random forest classifying '
-        'source with nested cross-validation and the per-feature summary, '
+        'profile type with nested cross-validation and the per-feature summary, '
         'collated into one report.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     examples={'Two sources on six paired samples': _paired_report_example},

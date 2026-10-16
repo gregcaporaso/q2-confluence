@@ -58,7 +58,7 @@ class IntegrateTests(TestPluginBase):
         self.assertEqual(tax[BLAUTIA], BLAUTIA)
         md = md.view(qiime2.Metadata).to_dataframe()
         self.assertEqual(md.loc['sample-1-amplicon', 'original-sample-id'], 'sample-1')
-        self.assertEqual(md.loc['sample-1-amplicon', 'source'], 'amplicon')
+        self.assertEqual(md.loc['sample-1-amplicon', 'profile-type'], 'amplicon')
         self.assertAlmostEqual(md.loc['sample-1-amplicon', 'unassigned-share'],
                                1 / 16)
         self.assertEqual(md.loc['sample-1-amplicon', 'site'], 'compost')
@@ -72,7 +72,7 @@ class IntegrateTests(TestPluginBase):
                                   self.genus_tree, 6)
         cols = md.view(qiime2.Metadata).to_dataframe().columns
         self.assertEqual(sorted(cols),
-                         ['original-sample-id', 'source', 'unassigned-share'])
+                         ['original-sample-id', 'profile-type', 'unassigned-share'])
 
     def test_tree_at_another_level(self):
         # TODO: this is AI-generated code; human review pending
