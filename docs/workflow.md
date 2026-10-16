@@ -247,5 +247,7 @@ qiime confluence paired-report \
 Bray-Curtis, Jaccard, unweighted and weighted UniFrac are computed on the proportions as they are, without rarefaction.
 The report holds, per metric, PERMANOVA by source and a PCoA scatter plot colored by source, then the random forest's confusion matrix and the per-feature summary, tabulated over every feature (search and sort in place); the summary is also the `feature-summary` metadata artifact.
 
+<!-- @gregcaporaso, reminder for the prose: explain why a reader's numbers differ slightly from the ones shown. The PERMANOVA p-values are permutation estimates and the random forest draws its folds and trees afresh each run, so p-values wobble in the third decimal and the accuracy by a sample or two (0.90 and 0.95 on two runs of this page on the same inputs); the pseudo-F values and the feature summary are deterministic. No random seed is set on purpose: copied commands would reuse it. -->
+
 <!-- @gregcaporaso, reminder for the prose: say that the abundance-weighted results on this 10% subset equal the full-depth run (bacon job 308 versus jobs 300 to 307: weighted UniFrac pseudo-F 2.61 against 2.62, Bray-Curtis 3.21 against 3.20) while the presence-based metrics and the feature counts move (unweighted UniFrac 4.62 against 3.83, Jaccard 4.93 against 4.58, 2,020 against 2,385 features) because sylph detects fewer genomes at this depth. -->
 Repeat the collapse, integration and report with `--p-level 5`, into a `family` directory, for the family-level view.
