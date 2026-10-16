@@ -23,10 +23,9 @@ The plugin is a nested repository inside the thermo-hec project, whose `CLAUDE.m
  * Before every commit: `flake8`, `q2lint`, `python -m pytest -q` (about five minutes; run only the affected test module while iterating). Run the full suite in the background and do not edit files while it runs.
  * `sed -i ''` on macOS has no `\b`; use Python for word-boundary edits. Tokenize-based renames shift continuation-line indents (flake8 E128); check them.
  * q2cli does not create missing output directories; a page or script must `mkdir` them.
- * The docs build (`make html`) needs a local port bind and network access the sandbox blocks; the developer builds it.
 
 ## Ownership
 
- * `docs/` prose is the developer's once they write it; until then `docs/tutorial.md` and `docs/data-preparation.md` are Claude's drafts and may be updated for signature changes. `docs/intro.md` is a placeholder. The tutorial's commands are describe-usage blocks (rendered for every interface by q2doc); validate them by rendering through q2cli's CLIUsage driver, and keep the shell alternatives in the tip boxes in step with them.
+ * This repository has no docs site (removed 2026-10-16): the tutorial, its data-preparation page and the ReadTheDocs build live in the sibling repository `thermo-hec-tutorial/` (its own session), which pins this plugin by commit in its extras file. A change to an action's name, signature or output here means updating that page and its pin, and re-rendering its describe-usage blocks.
  * Code, tests, examples, action help text and `README.md` are Claude's to keep accurate in the same commit as the change they describe.
- * The thermo-hec project's `slurm/tutorial.sbatch` renders this repository's tutorial page to CLI commands with q2cli's usage driver and runs them on bacon; a change to the page or to an action's CLI is tested there (re-ship the plugin as a `git archive` tarball at the commit under test).
+ * The thermo-hec project's `slurm/tutorial.sbatch` renders the tutorial page to CLI commands with rachis_cli's usage driver and runs them on bacon with both plugins installed; a change to an action's CLI is tested there (re-ship the plugin as a `git archive` tarball at the commit under test).

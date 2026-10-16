@@ -62,14 +62,8 @@ make lint
 
 ## Documentation
 
-The documentation is a MyST book built with q2doc, in the layout of the [gut-to-soil tutorial](https://github.com/qiime2/gut-to-soil-tutorial), and is published on ReadTheDocs from `.readthedocs.yaml`.
-Build it locally, in the environment above with the plugin installed, with:
-
-```shell
-q2doc refresh-cache
-make html
-make serve
-```
+The tutorial that uses this plugin, with the data-preparation record, is its own repository, [thermo-hec-tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial), built with q2doc and published at https://thermo-hec-tutorial.readthedocs.io.
+This repository carries no documentation site; the action reference is `qiime confluence <action> --help` and the usage example each action registers.
 
 ## About
 
