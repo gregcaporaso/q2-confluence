@@ -6,7 +6,7 @@ Every command is a usage example rendered for each interface; the data is the
 thermo-hec tutorial subset (ten compost samples with both 16S V4 amplicon and
 shotgun metagenome data, GTDB r232). How the data and the reference artifacts
 were prepared is on the [data preparation](data-preparation.md) page.
-Drive IDs marked DRIVE-ID-... are filled in after the upload. -->
+Drive IDs are those of the 2026-10-16 upload (tutorial-data/README.md in the parent project). -->
 
 This tutorial integrates a 16S rRNA amplicon profile and a shotgun metagenome profile of the same samples on one GTDB release, with the `confluence` plugin and stock QIIME 2 actions.
 It covers what you run on your own data: classifying and filtering the amplicon features, profiling the metagenome reads, integrating both at one taxonomic level, and comparing the two profile types on the samples they share.
@@ -34,7 +34,7 @@ The sample metadata of the ten tutorial samples: bin location, sample type, comp
 
 sample_metadata = use.init_metadata_from_url(
     'sample-metadata',
-    'https://drive.usercontent.google.com/download?export=download&confirm=t&id=1BgqmKoAfQpUmlKA9Mc86FK8uCnB7fX-l')
+    'https://drive.usercontent.google.com/download?export=download&confirm=t&id=1atS6Xt5npYZv0YBLrWiXVGMb4YO0u0RT')
 :::
 
 :::{describe-usage}
@@ -49,7 +49,7 @@ The integration actions take the study metadata as an `ImmutableMetadata` artifa
 :::{describe-usage}
 study_metadata = use.init_artifact_from_url(
     'study-metadata',
-    'https://drive.usercontent.google.com/download?export=download&confirm=t&id=DRIVE-ID-SAMPLE-METADATA-QZA')
+    'https://drive.usercontent.google.com/download?export=download&confirm=t&id=1PJQOCPLgOJ_Jeb-_ZmEN1enFzqLhbH5S')
 :::
 
 ## Reference data
@@ -60,7 +60,7 @@ The GTDB bacterial tree collapsed to one tip per genus was prepared once for the
 :::{describe-usage}
 genus_tree = use.init_artifact_from_url(
     'gtdb-r232-genus-tree',
-    'https://drive.usercontent.google.com/download?export=download&confirm=t&id=DRIVE-ID-GENUS-TREE')
+    'https://drive.usercontent.google.com/download?export=download&confirm=t&id=1sgwhDnhSXIbliFb-Fdi3o1u2NExqbovD')
 
 gtdb_classifier = use.init_artifact_from_url(
     'gtdb-r232-classifier',
@@ -106,11 +106,11 @@ The amplicon side starts from the denoised ASV table and sequences of the ten sa
 :::{describe-usage}
 asv_table = use.init_artifact_from_url(
     'asv-table',
-    'https://drive.usercontent.google.com/download?export=download&confirm=t&id=1-mcm1_ngVVuysqgJyURKaOTEI0OV1vee')
+    'https://drive.usercontent.google.com/download?export=download&confirm=t&id=1-HH4892h693WAQ37YvrBjV_3P7xA3UgF')
 
 asv_sequences = use.init_artifact_from_url(
     'asv-sequences',
-    'https://drive.usercontent.google.com/download?export=download&confirm=t&id=1uOcdxD5WhiH83qVNnvq55kkwMCKHd58B')
+    'https://drive.usercontent.google.com/download?export=download&confirm=t&id=1LzOioUEnzP4nbOsV9v75VGaqfgseagbi')
 :::
 
 The GTDB classifier gives every ASV a GTDB taxonomy; the SILVA classifier is used only to find organelle sequences (mitochondria, chloroplasts), which GTDB cannot name.
@@ -271,4 +271,4 @@ use.action(
                          feature_summary='genus-feature-summary'))
 :::
 
-For the family-level view, repeat the integration and the report with `level=5` and the family tree (`gtdb-r232-family-tree.qza`, prepared like the genus tree).
+For the family-level view, repeat the integration and the report with `level=5` and the family tree, prepared like the genus tree: `https://drive.usercontent.google.com/download?export=download&confirm=t&id=1MM2gsJFqSF-Ec7nHcqvKVGReliEjDM_R`.
