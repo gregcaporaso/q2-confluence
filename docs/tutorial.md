@@ -8,7 +8,7 @@ shotgun metagenome data, GTDB r232). How the data and the reference artifacts
 were prepared is on the [data preparation](data-preparation.md) page.
 Drive IDs are those of the 2026-10-16 upload (tutorial-data/README.md in the parent project). -->
 
-This tutorial integrates a 16S rRNA amplicon profile and a shotgun metagenome profile of the same samples on one GTDB release, with the `confluence` plugin and stock QIIME 2 actions.
+This tutorial integrates a 16S rRNA amplicon profile and a shotgun metagenome profile of the same samples on one GTDB release, with the `confluence` plugin, the `sylph` plugin (mosh-sylph) for the metagenome profile, and stock QIIME 2 actions.
 It covers what you run on your own data: classifying and filtering the amplicon features, profiling the metagenome reads, integrating both at one taxonomic level, and comparing the two profile types on the samples they share.
 [How the tutorial data and the reference artifacts were prepared](data-preparation.md) is a separate page.
 
@@ -71,31 +71,42 @@ silva_classifier = use.init_artifact_from_url(
     'https://www.arb-silva.de/fileadmin/silva_databases/current/QIIME2/2026.7/SSU/V4-515f-806r/uniform/SILVA_144_SSURef_NR99_uniform_classifier_V4-515f-806r.qza')
 :::
 
-The sylph database of the GTDB r232 species representatives is about 20 GB; `fetch-sylph-database` downloads it with the matching sylph-tax taxonomy.
+The metagenome reads are profiled with sylph through the `sylph` plugin (mosh-sylph), thin wrappers around sylph and sylph-tax.
+The sylph database of the GTDB r232 species representatives is about 20 GB; `fetch-database` downloads the authors' pre-built database, and `tax-download` the matching sylph-tax taxonomy.
 
 :::{describe-usage}
 sylph_database, = use.action(
-    use.UsageAction(plugin_id='confluence', action_id='fetch_sylph_database'),
+    use.UsageAction(plugin_id='sylph', action_id='fetch_database'),
     use.UsageInputs(release='232'),
     use.UsageOutputNames(database='sylph-gtdb-r232'))
+
+sylph_taxonomy, = use.action(
+    use.UsageAction(plugin_id='sylph', action_id='tax_download'),
+    use.UsageInputs(taxonomy='GTDB_r232'),
+    use.UsageOutputNames(sylph_taxonomy='sylph-tax-gtdb-r232'))
 :::
 
 :::{tip} An artifact cache for the large artifacts
 :class: dropdown
 Every action that reads a `.qza` file unzips it first, and the sylph database is 20 GB.
 An [artifact cache](https://use.qiime2.org/en/stable/tutorials/use-the-artifact-cache/) keeps artifacts unzipped under a key, referenced as `cache:key` in place of a file path, so the database is written once and never zipped or unzipped again.
-On the command line, the alternative to the command above is:
+On the command line, the alternative to the two commands above is:
 
 ```shell
 qiime tools cache-create --cache cache
 
-qiime confluence fetch-sylph-database \
+qiime sylph fetch-database \
   --p-release 232 \
   --use-cache cache \
   --o-database cache:sylph-gtdb-r232
+
+qiime sylph tax-download \
+  --p-taxonomy GTDB_r232 \
+  --use-cache cache \
+  --o-sylph-taxonomy cache:sylph-tax-gtdb-r232
 ```
 
-Then pass `--i-database cache:sylph-gtdb-r232 --use-cache cache` to `profile-reads` and `query-reads` below.
+Then pass `cache:sylph-gtdb-r232` and `cache:sylph-tax-gtdb-r232` with `--use-cache cache` wherever the database and the taxonomy are used below.
 The tutorial's own data stays in `.qza` files, with its provenance.
 :::
 
@@ -158,7 +169,7 @@ sylph sketches the reads once per sample; the sketches serve every profile or qu
 
 :::{describe-usage}
 sketches, = use.action(
-    use.UsageAction(plugin_id='confluence', action_id='sketch_reads'),
+    use.UsageAction(plugin_id='sylph', action_id='sketch'),
     use.UsageInputs(reads=reads, threads=16),
     use.UsageOutputNames(sketches='sketches'))
 :::
@@ -168,7 +179,7 @@ sketches, = use.action(
 The sketches are a few GB; the cache form of the step above is:
 
 ```shell
-qiime confluence sketch-reads \
+qiime sylph sketch \
   --i-reads wgs-subset-reads.qza \
   --p-threads 16 \
   --use-cache cache \
@@ -176,30 +187,55 @@ qiime confluence sketch-reads \
 ```
 :::
 
-`profile-reads` runs sylph profile and sylph-tax taxprof: per sample, the share of each detected genome corrected for genome size (the taxonomic abundance, the measure to integrate), the share of reads (the sequence abundance), the genome-keyed taxonomy, and per-sample statistics (genomes and genera detected, median ANI, unknown share).
+`profile` runs sylph profile against the database; `estimate_unknown` asks sylph to estimate, per sample, the share of reads from no genome in the database.
+`taxprof` attaches the taxonomy with sylph-tax, and `taxprof-to-tables` turns the per-sample profiles into QIIME 2 tables: the share of each detected genome corrected for genome size (the taxonomic abundance, the measure to integrate), the share of reads (the sequence abundance), the genome-keyed taxonomy, and per-sample statistics (genomes and genera detected, median ANI, unknown share).
 
 :::{describe-usage}
-sylph_taxonomic_abundance, sylph_sequence_abundance, sylph_taxonomy, sylph_stats = use.action(
-    use.UsageAction(plugin_id='confluence', action_id='profile_reads'),
-    use.UsageInputs(sketches=sketches, database=sylph_database, threads=16),
+sylph_profile, = use.action(
+    use.UsageAction(plugin_id='sylph', action_id='profile'),
+    use.UsageInputs(sketches=sketches, database=sylph_database, threads=16,
+                    estimate_unknown=True),
+    use.UsageOutputNames(profile='sylph-profile'))
+
+sylph_tax_profiles, = use.action(
+    use.UsageAction(plugin_id='sylph', action_id='taxprof'),
+    use.UsageInputs(profile=sylph_profile, sylph_taxonomy=sylph_taxonomy),
+    use.UsageOutputNames(taxonomic_profiles='sylph-taxonomic-profiles'))
+
+sylph_taxonomic_abundance, sylph_sequence_abundance, sylph_genome_taxonomy, sylph_stats = use.action(
+    use.UsageAction(plugin_id='sylph', action_id='taxprof_to_tables'),
+    use.UsageInputs(taxonomic_profiles=sylph_tax_profiles, sketches=sketches),
     use.UsageOutputNames(taxonomic_abundance='sylph-taxonomic-abundance',
                          sequence_abundance='sylph-sequence-abundance',
-                         taxonomy='sylph-taxonomy', stats='sylph-stats'))
+                         taxonomy='sylph-genome-taxonomy', stats='sylph-stats'))
 :::
 
 :::{tip} Profiling from the cache
 :class: dropdown
-With the database and the sketches in the cache:
+With the database, the taxonomy and the sketches in the cache:
 
 ```shell
-qiime confluence profile-reads \
+qiime sylph profile \
   --i-sketches cache:sketches \
   --i-database cache:sylph-gtdb-r232 \
   --p-threads 16 \
+  --p-estimate-unknown \
+  --use-cache cache \
+  --o-profile sylph-profile.qza
+
+qiime sylph taxprof \
+  --i-profile sylph-profile.qza \
+  --i-sylph-taxonomy cache:sylph-tax-gtdb-r232 \
+  --use-cache cache \
+  --o-taxonomic-profiles sylph-taxonomic-profiles.qza
+
+qiime sylph taxprof-to-tables \
+  --i-taxonomic-profiles sylph-taxonomic-profiles.qza \
+  --i-sketches cache:sketches \
   --use-cache cache \
   --o-taxonomic-abundance sylph-taxonomic-abundance.qza \
   --o-sequence-abundance sylph-sequence-abundance.qza \
-  --o-taxonomy sylph-taxonomy.qza \
+  --o-taxonomy sylph-genome-taxonomy.qza \
   --o-stats sylph-stats.qza
 ```
 :::
@@ -218,7 +254,7 @@ As on the amplicon side, the profile is restricted to Bacteria.
 :::{describe-usage}
 sylph_bacteria, = use.action(
     use.UsageAction(plugin_id='taxa', action_id='filter_table'),
-    use.UsageInputs(table=sylph_taxonomic_abundance, taxonomy=sylph_taxonomy,
+    use.UsageInputs(table=sylph_taxonomic_abundance, taxonomy=sylph_genome_taxonomy,
                     include='d__Bacteria', mode='contains'),
     use.UsageOutputNames(filtered_table='sylph-bacteria'))
 :::
@@ -232,7 +268,7 @@ The two profiles enter as collections keyed by a label that names the profile ty
 tables = use.construct_artifact_collection(
     'tables', {'amplicon': asv_table_bacteria, 'metagenome': sylph_bacteria})
 taxonomies = use.construct_artifact_collection(
-    'taxonomies', {'amplicon': asv_taxonomy_gtdb, 'metagenome': sylph_taxonomy})
+    'taxonomies', {'amplicon': asv_taxonomy_gtdb, 'metagenome': sylph_genome_taxonomy})
 metadata = use.construct_artifact_collection(
     'metadata', {'study': study_metadata})
 
