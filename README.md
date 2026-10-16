@@ -12,10 +12,6 @@ The workflow, in order (`qiime confluence <action> --help` for the details):
 
 | Action | Role | Status |
 |---|---|---|
-| `fetch-sylph-database` | Pre-built sylph database of the GTDB species representatives (226 or 232) with its sylph-tax taxonomy | provisional, intended for MOSHPIT |
-| `sketch-reads` | sylph sketch of paired-end reads, one sketch per sample (`SylphSketches`), consumed by `profile-reads` | provisional, intended for MOSHPIT |
-| `profile-reads` | sylph profile and taxprof on the sketches: genome-keyed taxonomic and sequence abundance tables, taxonomy, per-sample stats | provisional, intended for MOSHPIT |
-| `query-reads` | sylph query on the sketches: containment ANI, coverage and ANI interval of every database genome with enough k-mers in a sample, taxonomy joined, as `ImmutableMetadata` (one row per sample and genome); `targets` keeps lineages of interest | provisional, intended for MOSHPIT |
 | `gtdb-tree-collapse` | A reference tree collapsed to one tip per taxon at a level, named like `taxa collapse` IDs; once per release and level | provisional, intended for q2-phylogeny |
 | `summarize-inputs` | Which sample IDs the tables and metadata of the studies share | stays |
 | `merge-metadata` | Union or intersection of several studies' metadata | stays |
@@ -24,7 +20,7 @@ The workflow, in order (`qiime confluence <action> --help` for the details):
 | `paired-report` | On the samples every source profiled: Bray-Curtis, Jaccard and UniFrac on the proportions (no rarefaction), PERMANOVA by profile type and a PCoA scatter plot per metric, random forest with nested cross-validation, per-feature summary (every feature, searchable), one report plus the summary as metadata | stays |
 | `summarize-paired-features` | The per-feature summary (importance, rank, per-profile-type mean and prevalence, log2 ratio, direction) as `ImmutableMetadata`; `paired-report` tabulates it | stays |
 
-The amplicon side (denoising, GTDB classification, the SILVA-based organelle filter) and the metagenome read preparation (trimming, host read removal) are stock QIIME 2 and MOSHPIT actions and are described in the documentation rather than wrapped here.
+The amplicon side (denoising, GTDB classification, the SILVA-based organelle filter) and the metagenome read preparation (trimming, host read removal) are stock QIIME 2 and MOSHPIT actions, and the metagenome profile comes from the `sylph` plugin ([mosh-sylph](https://github.com/gregcaporaso/mosh-sylph), thin wrappers around sylph and sylph-tax; the sylph actions this plugin carried provisionally moved there on 2026-10-16). The tutorial uses both plugins in one environment.
 Every action carries a usage example that the test suite executes.
 
 ## Development installation

@@ -6,14 +6,12 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from qiime2.plugin import (Bool, Choices, Citations, Collection, Int, List,
-                           Metadata, Plugin, Range, Str, Visualization)
+from qiime2.plugin import (Choices, Citations, Collection, Int, Metadata,
+                           Plugin, Range, Str, Visualization)
 from q2_types.feature_data import FeatureData, Importance, Taxonomy
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
 from q2_types.distance_matrix import DistanceMatrix
 from q2_types.metadata import ImmutableMetadata
-from q2_types.per_sample_sequences import PairedEndSequencesWithQuality
-from q2_types.sample_data import SampleData
 from q2_types.tree import Phylogeny, Rooted
 
 from q2_confluence import __version__
@@ -22,20 +20,12 @@ from q2_confluence._examples import (_relative_frequency_example,
                                      _integrate_at_genus,
                                      _merge_metadata_union,
                                      _paired_report_example,
-                                     _profile_reads_example,
-                                     _query_reads_example,
-                                     _sketch_reads_example,
                                      _summarize_paired_features_example,
                                      _summarize_inputs_two_studies)
 from q2_confluence._inputs import summarize_inputs
 from q2_confluence._integrate import integrate
 from q2_confluence._metadata import merge_metadata
 from q2_confluence._report import paired_report, summarize_paired_features
-from q2_confluence._sylph import (SylphDatabase, SylphDatabaseDirFmt, SylphDbFormat,
-                                  SylphSketches, SylphSketchesDirFmt,
-                                  SylphSketchFormat, SylphTaxonomyFormat,
-                                  fetch_sylph_database, profile_reads,
-                                  query_reads, sketch_reads)
 from q2_confluence._table import relative_frequency
 from q2_confluence._tree import gtdb_tree_collapse
 
@@ -199,141 +189,6 @@ plugin.pipelines.register_function(
         'paired-report uses.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     examples={'Amplicon and metagenome at genus': _integrate_at_genus},
-)
-
-plugin.register_formats(SylphDbFormat, SylphTaxonomyFormat, SylphDatabaseDirFmt,
-                        SylphSketchFormat, SylphSketchesDirFmt)
-plugin.register_semantic_types(SylphDatabase, SylphSketches)
-plugin.register_artifact_class(
-    SylphDatabase, SylphDatabaseDirFmt,
-    description='A sylph genome sketch database with the sylph-tax taxonomy '
-                'of its genomes.')
-plugin.register_artifact_class(
-    SylphSketches, SylphSketchesDirFmt,
-    description='sylph read sketches, one per sample, which sylph profile and '
-                'sylph query consume.')
-
-plugin.methods.register_function(
-    function=fetch_sylph_database,
-    inputs={},
-    parameters={'release': Str % Choices(['226', '232'])},
-    outputs=[('database', SylphDatabase)],
-    input_descriptions={},
-    parameter_descriptions={'release': 'The GTDB release.'},
-    output_descriptions={'database': 'The pre-built database of the GTDB '
-                                     'species representatives (c=200, about 14 '
-                                     'to 20 GB) with its taxonomy.'},
-    name='Fetch a pre-built sylph GTDB database',
-    description=(
-        'Downloads the sylph authors\' pre-built database of the GTDB species '
-        'representatives and the matching sylph-tax taxonomy metadata from '
-        'Zenodo. No checksum is published for the database. Provisional: '
-        'expected to move to MOSHPIT.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
-    deprecated=True,
-)
-
-plugin.methods.register_function(
-    function=sketch_reads,
-    inputs={'reads': SampleData[PairedEndSequencesWithQuality]},
-    parameters={'threads': Int % Range(1, None)},
-    outputs=[('sketches', SylphSketches)],
-    input_descriptions={
-        'reads': 'Paired-end reads per sample (quality-filtered, host reads '
-                 'removed).'},
-    parameter_descriptions={'threads': 'Threads for sylph sketch.'},
-    output_descriptions={
-        'sketches': 'One sketch per sample, named by sample ID.'},
-    name='Sketch reads for sylph',
-    description=(
-        'sylph sketch on every sample\'s read pairs: the k-mer sketch that both '
-        'profile-reads and query-reads consume, so reads are sketched once per '
-        'sample however many databases or queries follow. Provisional: '
-        'expected to move to MOSHPIT.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
-    deprecated=True,
-    examples={'Sketch three samples': _sketch_reads_example},
-)
-
-plugin.methods.register_function(
-    function=profile_reads,
-    inputs={'sketches': SylphSketches,
-            'database': SylphDatabase},
-    parameters={'threads': Int % Range(1, None), 'estimate_unknown': Bool},
-    outputs=[('taxonomic_abundance', FeatureTable[RelativeFrequency]),
-             ('sequence_abundance', FeatureTable[RelativeFrequency]),
-             ('taxonomy', FeatureData[Taxonomy]),
-             ('stats', ImmutableMetadata)],
-    input_descriptions={
-        'sketches': 'The read sketches from sketch-reads.',
-        'database': 'A sylph database with its taxonomy.'},
-    parameter_descriptions={
-        'threads': 'Threads for sylph profile.',
-        'estimate_unknown': 'Estimate the share of reads from no genome in the '
-                            'database (sylph profile -u); it is reported per '
-                            'sample as unknown-share and the sequence abundance '
-                            'is renormalized over the detected genomes.'},
-    output_descriptions={
-        'taxonomic_abundance': 'Per sample, the share of each detected genome '
-                               'corrected for genome size (roughly a share of '
-                               'cells; the measure to integrate).',
-        'sequence_abundance': 'Per sample, the share of reads from each '
-                              'detected genome.',
-        'taxonomy': 'The taxonomy of every detected genome, keyed by accession, '
-                    'seven ranks joined with ;.',
-        'stats': 'Per sample: genomes and genera detected, median ANI, '
-                 'unknown share.'},
-    name='Profile reads against a sylph database',
-    description=(
-        'sylph profile of the sketches against the database, and '
-        'sylph-tax taxprof with the database\'s taxonomy, parsed into '
-        'genome-keyed tables. A sample in which sylph detects nothing keeps an '
-        'all-zero column. Provisional: expected to move to MOSHPIT.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
-    deprecated=True,
-    examples={'Sketch and profile three samples against a two-genome database':
-              _profile_reads_example},
-)
-
-plugin.methods.register_function(
-    function=query_reads,
-    inputs={'sketches': SylphSketches, 'database': SylphDatabase},
-    parameters={'threads': Int % Range(1, None),
-                'min_kmers': Int % Range(1, None),
-                'targets': List[Str]},
-    outputs=[('query', ImmutableMetadata)],
-    input_descriptions={
-        'sketches': 'The read sketches from sketch-reads.',
-        'database': 'A sylph database with its taxonomy.'},
-    parameter_descriptions={
-        'threads': 'Threads for sylph query.',
-        'min_kmers': 'A genome is reported in a sample when at least this many '
-                     'of its sampled k-mers are present there (sylph query '
-                     '--min-number-kmers).',
-        'targets': 'Keep only the genomes whose taxonomy string or accession '
-                   'contains one of these, e.g. g__Escherichia; or '
-                   'GCF_000005845.2. Default: every reported genome.'},
-    output_descriptions={
-        'query': 'One row per sample and genome, ID <sample-id>-<accession>: '
-                 'sample, accession, taxonomy, adjusted-ani, '
-                 'effective-coverage, ani-5-percentile and ani-95-percentile '
-                 '(missing when sylph reports NA), containment-index '
-                 '(contained/sampled k-mers), naive-ani.'},
-    name='Containment ANI of the database genomes in every sample',
-    description=(
-        'sylph query of the sketches against the database. Unlike sylph '
-        'profile it reassigns no k-mers and applies no 95% ANI cutoff, so it '
-        'reports every genome with enough sampled k-mers present in a sample, '
-        'at any adjusted ANI from 90 (sylph\'s default minimum for query), '
-        'and each genome\'s row is independent of the other genomes. Rows are '
-        'not additive, so the result is metadata, not a feature table. Below '
-        'about 0.1x effective coverage the adjusted ANI overshoots and its '
-        '5-95 percentile interval can reach above 100: read the interval and '
-        'the coverage together, not the point estimate alone. Provisional: '
-        'expected to move to MOSHPIT.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
-    deprecated=True,
-    examples={'Query three samples for one genus': _query_reads_example},
 )
 
 plugin.methods.register_function(

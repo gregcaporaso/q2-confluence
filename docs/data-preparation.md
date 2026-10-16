@@ -45,7 +45,7 @@ qiime confluence gtdb-tree-collapse \
   --o-collapsed-tree gtdb-r232-family-tree.qza
 ```
 
-The amplicon classifiers and the sylph database are not re-hosted: the tutorial fetches the GTDB r232 naive Bayes classifier from the rachis Zenodo record, the SILVA 144 V4 uniform classifier from SILVA, and the sylph database from the sylph authors with `fetch-sylph-database`.
+The amplicon classifiers and the sylph database are not re-hosted: the tutorial fetches the GTDB r232 naive Bayes classifier from the rachis Zenodo record, the SILVA 144 V4 uniform classifier from SILVA, and the sylph database and taxonomy from the sylph authors with the `sylph` plugin's `fetch-database` and `tax-download`.
 
 (amplicon)=
 ## Amplicon data

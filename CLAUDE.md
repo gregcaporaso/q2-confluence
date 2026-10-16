@@ -13,6 +13,7 @@ The plugin is a nested repository inside the thermo-hec project, whose `CLAUDE.m
  * Provisional actions are registered with `deprecated=True` and a description naming their intended home (q2-feature-table, q2-phylogeny, MOSHPIT).
  * Stock actions over custom code; one concern per function and per commit; no rerun-only modes. Every action keeps one usage example, and `tests/test_examples.py` executes them all.
  * The workflow runs on proportions: no counts conversion and no rarefaction anywhere (the `frequency` action was dropped on 2026-10-13); `relative-frequency` renormalizes after feature filters, and the paired report computes its distances once on the relative table.
+ * The metagenome profile comes from the `sylph` plugin (sibling repository `mosh-sylph/`, its own session; read it, file findings, never edit it). The sylph actions, types and fixture this plugin carried left on 2026-10-16; the tutorial needs both plugins installed (`pip install -e ../mosh-sylph` into this environment until mosh-sylph is published).
  * Commit messages name @gregcaporaso as the reviewer who requested the change and say what Claude implemented, with the `Co-Authored-By` trailer; never push.
 
 ## Environment and checks
