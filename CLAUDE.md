@@ -26,6 +26,6 @@ The plugin is a nested repository inside the thermo-hec project, whose `CLAUDE.m
 
 ## Ownership
 
- * `docs/` prose is the developer's once they write it; until then `docs/workflow.md` is Claude's draft and may be updated for signature changes. `docs/intro.md` is a placeholder.
+ * `docs/` prose is the developer's once they write it; until then `docs/tutorial.md` and `docs/data-preparation.md` are Claude's drafts and may be updated for signature changes. `docs/intro.md` is a placeholder. The tutorial's commands are describe-usage blocks (rendered for every interface by q2doc); validate them by rendering through q2cli's CLIUsage driver, and keep the shell alternatives in the tip boxes in step with them.
  * Code, tests, examples, action help text and `README.md` are Claude's to keep accurate in the same commit as the change they describe.
- * The thermo-hec project's `slurm/tutorial.sbatch` runs this repository's workflow page verbatim on bacon; a change to the page or to an action's CLI is tested there (re-ship the plugin as a `git archive` tarball at the commit under test).
+ * The thermo-hec project's `slurm/tutorial.sbatch` renders this repository's tutorial page to CLI commands with q2cli's usage driver and runs them on bacon; a change to the page or to an action's CLI is tested there (re-ship the plugin as a `git archive` tarball at the commit under test).
