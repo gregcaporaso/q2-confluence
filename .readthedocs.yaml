@@ -9,7 +9,8 @@ build:
     python: "mambaforge-latest"
   jobs:
     create_environment:
-      - conda env create -p .env/ --file environment-files/q2-confluence-qiime2-dev.yml
+      - conda env create -p .env/ --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-qiime2-linux-64-conda.yml
+      - conda env update -p .env/ --file environment-files/q2-confluence-dev-extras.yml
     build:
       html:
         - PATH=$(pwd)/.env/bin/:$PATH pip install .
@@ -19,4 +20,4 @@ build:
         - cp -a docs/_build/* $READTHEDOCS_OUTPUT/
 
 conda:
-  environment: environment-files/q2-confluence-qiime2-dev.yml
+  environment: environment-files/q2-confluence-dev-extras.yml

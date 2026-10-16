@@ -23,11 +23,11 @@ dev: all
 # tutorial test run. preview renders the interface tabs without executing;
 # ReadTheDocs builds the preview.
 html:
-	cp environment-files/q2-confluence-qiime2-dev.yml docs/_static/environment.yml
+	cp environment-files/q2-confluence-dev-extras.yml docs/_static/environment.yml
 	cd docs && Q2DOC_BASE_COMMAND='qiime' jupyter book build --html
 
 preview:
-	cp environment-files/q2-confluence-qiime2-dev.yml docs/_static/environment.yml
+	cp environment-files/q2-confluence-dev-extras.yml docs/_static/environment.yml
 	cd docs && Q2DOC_BASE_COMMAND='qiime' Q2DOC_PREVIEW= jupyter book build --html
 
 serve:

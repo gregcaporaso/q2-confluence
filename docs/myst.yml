@@ -20,7 +20,7 @@ project:
 
   downloads:
     - file: _static/environment.yml
-      title: Conda environment file
+      title: Extras environment file (applied on top of the qiime2 distribution's development environment)
 
 site:
   template: book-theme

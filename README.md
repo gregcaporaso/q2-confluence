@@ -29,17 +29,33 @@ Every action carries a usage example that the test suite executes.
 
 ## Development installation
 
-Create the environment (QIIME 2 2026.7 `qiime2` distribution, sylph, and the documentation toolchain), then install the plugin into it:
+The plugin targets the unreleased 2026.10 epoch, so the base environment is the `qiime2` distribution's development environment, created as in the [QIIME 2 development environment guide](https://develop.qiime2.org/en/stable/plugins/how-to-guides/set-up-development-environment.html) from the distribution's `dev/latest/passed` environment file for your platform; the plugin's extras (sylph, sylph-tax, the documentation toolchain, the linters) are layered on with `conda env update`.
+
+Linux (x86_64):
 
 ```shell
-conda env create -n q2-confluence-dev --file environment-files/q2-confluence-qiime2-dev.yml
+conda env create -n q2-confluence-dev --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-qiime2-linux-64-conda.yml
+```
+
+macOS on Apple Silicon (the distribution has no arm64 build; the osx-64 build runs under Rosetta):
+
+```shell
+CONDA_SUBDIR=osx-64 conda env create -n q2-confluence-dev --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-qiime2-osx-64-conda.yml
 conda activate q2-confluence-dev
+conda config --env --set subdir osx-64
+```
+
+macOS on Intel uses the same osx-64 file without `CONDA_SUBDIR`.
+Then, in the activated environment:
+
+```shell
+conda env update -n q2-confluence-dev --file environment-files/q2-confluence-dev-extras.yml
 make dev
 qiime dev refresh-cache
 qiime confluence --help
 ```
 
-On Apple Silicon, prefix the `conda env create` with `CONDA_SUBDIR=osx-64` and run `conda config --env --set subdir osx-64` after activating.
+The dev environment files are rebuilt as the distribution's packages change; recreate the environment every few weeks, as the guide suggests.
 
 Run the tests and the linters with:
 
