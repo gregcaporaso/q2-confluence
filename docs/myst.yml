@@ -15,7 +15,8 @@ project:
 
   toc:
     - file: intro.md
-    - file: workflow.md
+    - file: tutorial.md
+    - file: data-preparation.md
 
   downloads:
     - file: _static/environment.yml

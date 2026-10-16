@@ -14,7 +14,7 @@ build:
       html:
         - PATH=$(pwd)/.env/bin/:$PATH pip install .
         - PATH=$(pwd)/.env/bin/:$PATH q2doc refresh-cache
-        - PATH=$(pwd)/.env/bin/:$PATH make html
+        - PATH=$(pwd)/.env/bin/:$PATH make preview
         - mkdir -p $READTHEDOCS_OUTPUT
         - cp -a docs/_build/* $READTHEDOCS_OUTPUT/
 
