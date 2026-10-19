@@ -6,8 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from qiime2.plugin import (Choices, Citations, Collection, Int, Metadata,
-                           Plugin, Range, Str, Visualization)
+from qiime2.plugin import (Choices, Collection, Int, Metadata, Plugin, Range,
+                           Str, Visualization)
 from q2_types.feature_data import FeatureData, Importance, Taxonomy
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
 from q2_types.distance_matrix import DistanceMatrix
@@ -29,8 +29,6 @@ from q2_confluence._report import paired_report, summarize_paired_features
 from q2_confluence._table import relative_frequency
 from q2_confluence._tree import gtdb_tree_collapse
 
-citations = Citations.load("citations.bib", package="q2_confluence")
-
 plugin = Plugin(
     name="confluence",
     version=__version__,
@@ -41,7 +39,6 @@ plugin = Plugin(
                  "taxonomic level, merge the studies into one feature table with "
                  "provenance, and compare paired samples."),
     short_description="Integrate amplicon and metagenome taxonomic profiles.",
-    citations=[citations['Caporaso-Bolyen-2024']]
 )
 
 # Provisional actions are registered with deprecated=True and name the plugin
