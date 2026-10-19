@@ -30,22 +30,33 @@ The plugin targets the unreleased 2026.10 epoch, so the base environment is the 
 Linux (x86_64):
 
 ```shell
-conda env create -n q2-confluence-dev --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-qiime2-linux-64-conda.yml
+conda env create \
+  -n q2-confluence-dev-$(date "+%Y-%m-%d") \
+  --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-qiime2-linux-64-conda.yml
 ```
 
 macOS on Apple Silicon (the distribution has no arm64 build; the osx-64 build runs under Rosetta):
 
 ```shell
-CONDA_SUBDIR=osx-64 conda env create -n q2-confluence-dev --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-qiime2-osx-64-conda.yml
-conda activate q2-confluence-dev
-conda config --env --set subdir osx-64
+CONDA_SUBDIR=osx-64 conda env create \
+  -n q2-confluence-dev-$(date "+%Y-%m-%d") \
+  --file https://raw.githubusercontent.com/qiime2/distributions/dev/latest/passed/rachis-qiime2-osx-64-conda.yml
+
+conda activate q2-confluence-dev-$(date "+%Y-%m-%d")
+
+conda config \
+  --env \
+  --set subdir osx-64
 ```
 
 macOS on Intel uses the same osx-64 file without `CONDA_SUBDIR`.
 Then, in the activated environment:
 
 ```shell
-conda env update -n q2-confluence-dev --file environment-files/q2-confluence-dev-extras.yml
+conda env update \
+  -n q2-confluence-dev-$(date "+%Y-%m-%d") \
+  --file environment-files/q2-confluence-dev-extras.yml
+
 make dev
 qiime dev refresh-cache
 qiime confluence --help
