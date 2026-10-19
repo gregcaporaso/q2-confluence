@@ -73,7 +73,7 @@ make lint
 
 ## Documentation
 
-The tutorial that uses this plugin, with the data-preparation record, is its own repository, [thermo-hec-tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial), built with q2doc and published at https://thermo-hec-tutorial.readthedocs.io.
+The tutorial that uses this plugin, with the data-preparation record, is its own repository, [thermo-hec-tutorial](https://github.com/gregcaporaso/thermo-hec-tutorial).
 This repository carries no documentation site; the action reference is `qiime confluence <action> --help` and the usage example each action registers.
 
 ## About
