@@ -59,12 +59,9 @@ class IntegrateTests(TestPluginBase):
         md = md.view(qiime2.Metadata).to_dataframe()
         self.assertEqual(md.loc['sample-1-amplicon', 'original-sample-id'], 'sample-1')
         self.assertEqual(md.loc['sample-1-amplicon', 'profile-type'], 'amplicon')
-        self.assertAlmostEqual(md.loc['sample-1-amplicon', 'unassigned-share'],
-                               1 / 16)
         self.assertEqual(md.loc['sample-1-amplicon', 'site'], 'compost')
         self.assertAlmostEqual(md.loc['sample-3-metagenome', 'read-pairs-millions'],
                                38.7)
-        self.assertEqual(md.loc['sample-2-metagenome', 'unassigned-share'], 0)
 
     def test_without_metadata(self):
         # TODO: this is AI-generated code; human review pending
@@ -72,7 +69,7 @@ class IntegrateTests(TestPluginBase):
                                   self.genus_tree, 6)
         cols = md.view(qiime2.Metadata).to_dataframe().columns
         self.assertEqual(sorted(cols),
-                         ['original-sample-id', 'profile-type', 'unassigned-share'])
+                         ['original-sample-id', 'profile-type'])
 
     def test_tree_at_another_level(self):
         # TODO: this is AI-generated code; human review pending

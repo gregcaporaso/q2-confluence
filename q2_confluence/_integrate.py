@@ -23,8 +23,7 @@ def integrate(ctx, tables, taxonomies, tree, level, metadata=None):
     the same keys; `tree` is the reference tree collapsed to the same level.
     Every source is renormalized to proportions after the drop. Sample IDs
     in the merged table are '<id>-<key>', and the output metadata records
-    the original ID (`original-sample-id`), the key (`profile-type`) and the share
-    of each sample dropped as unnamed at the level (`unassigned-share`),
+    the original ID (`original-sample-id`) and the key (`profile-type`),
     joined to the union of the studies' metadata when given.
     """
     keys = list(tables.keys())   # a ResultCollection: iterate explicitly
@@ -43,23 +42,19 @@ def integrate(ctx, tables, taxonomies, tree, level, metadata=None):
     for key in keys:
         collapsed, = collapse(table=tables[key], taxonomy=taxonomies[key],
                               level=level)
-        before = _sample_sums(collapsed)
         unnamed = [i for i in collapsed.view(biom.Table).ids(axis='observation')
                    if not _is_named(i)]
         kept = collapsed
         if unnamed:
             kept, = filter_features(table=collapsed, metadata=_ids(unnamed),
                                     exclude_ids=True)
-        after = _sample_sums(kept).reindex(before.index).fillna(0)
         relative, = relative_frequency(table=kept)
-        new_ids = {i: f'{i}-{key}' for i in after.index}
+        new_ids = {i: f'{i}-{key}' for i in kept.view(biom.Table).ids()}
         renamed, = rename_ids(table=relative, metadata=_column(new_ids),
                               axis='sample', strict=True)
         relatives.append(renamed)
-        for i in after.index:
-            rows.append({'sample-id': new_ids[i], 'original-sample-id': i,
-                         'profile-type': key,
-                         'unassigned-share': 1 - after[i] / before[i]})
+        rows += [{'sample-id': new, 'original-sample-id': old, 'profile-type': key}
+                 for old, new in new_ids.items()]
 
     merged, = merge(tables=relatives)
     _check_tips(merged, tree)
@@ -72,12 +67,6 @@ def integrate(ctx, tables, taxonomies, tree, level, metadata=None):
         md = md.join(studies, on='original-sample-id')
     merged_md = ctx.make_artifact('ImmutableMetadata', qiime2.Metadata(md))
     return merged, taxonomy, merged_md
-
-
-def _sample_sums(table):
-    # TODO: this is AI-generated code; human review pending
-    t = table.view(biom.Table)
-    return pd.Series(t.sum(axis='sample'), index=t.ids())
 
 
 def _ids(ids):
