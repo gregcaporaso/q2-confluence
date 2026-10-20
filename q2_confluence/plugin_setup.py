@@ -27,7 +27,7 @@ from q2_confluence._integrate import integrate
 from q2_confluence._metadata import merge_metadata
 from q2_confluence._report import paired_report, summarize_paired_features
 from q2_confluence._table import relative_frequency
-from q2_confluence._tree import gtdb_tree_collapse
+from q2_confluence._tree import GTDB_RANKS, gtdb_tree_collapse
 
 plugin = Plugin(
     name="confluence",
@@ -47,7 +47,7 @@ plugin = Plugin(
 plugin.methods.register_function(
     function=gtdb_tree_collapse,
     inputs={'tree': Phylogeny[Rooted], 'taxonomy': FeatureData[Taxonomy]},
-    parameters={'level': Int % Range(1, None)},
+    parameters={'level': Int % Range(1, GTDB_RANKS, inclusive_end=True)},
     outputs=[('collapsed_tree', Phylogeny[Rooted])],
     input_descriptions={
         'tree': 'A reference tree whose tips are keyed like the taxonomy, '

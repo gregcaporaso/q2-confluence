@@ -44,7 +44,7 @@ class CollapseTreeTests(unittest.TestCase):
         self.assertEqual(set(tips), {'d__B;p__P;c__C;o__O;f__F;g__A',
                                      'd__B;p__P;c__C;o__O;f__F;g__B',
                                      'd__B;p__P;c__C;o__O;f__G;g__C'})
-        # stem 0.5 plus the mean tip depth (0.1 + 0.3) / 2
+        # stem 0.5 plus the median tip depth (0.1 + 0.3) / 2
         self.assertAlmostEqual(tips['d__B;p__P;c__C;o__O;f__F;g__A'].length, 0.7)
         # a single-genome genus keeps its branch
         self.assertAlmostEqual(tips['d__B;p__P;c__C;o__O;f__F;g__B'].length, 0.4)
@@ -96,10 +96,17 @@ class CollapseTreeTests(unittest.TestCase):
 
     def test_bad_level(self):
         # TODO: this is AI-generated code; human review pending
-        with self.assertRaisesRegex(ValueError, 'at least 1'):
-            _collapse_tree(self.tree, self.taxonomy, 0)
-        with self.assertRaisesRegex(ValueError, 'exceeds'):
-            _collapse_tree(self.tree, self.taxonomy, 8)
+        for level in [0, 8]:
+            with self.assertRaisesRegex(ValueError, 'between 1 and 7'):
+                _collapse_tree(self.tree, self.taxonomy, level)
+
+    def test_not_seven_ranks(self):
+        # TODO: this is AI-generated code; human review pending
+        taxonomy = self.taxonomy.copy()
+        taxonomy['g3'] = 'd__B;p__P;c__C;o__O;f__F;g__B'
+        with self.assertRaisesRegex(ValueError, '1 taxonomy strings do not '
+                                    'have the 7 GTDB ranks'):
+            _collapse_tree(self.tree, taxonomy, 6)
 
 
 class GtdbTreeCollapseTests(unittest.TestCase):
@@ -109,16 +116,17 @@ class GtdbTreeCollapseTests(unittest.TestCase):
         fmt = NewickFormat()
         with fmt.open() as fh:
             fh.write("((RS_GCF_1:0.1,RS_GCF_2:0.3)'100.0:g__A':0.5,GB_GCA_3:0.4);")
-        taxonomy = pd.Series({'RS_GCF_1': 'd__B;g__Blautia_A;s__x',
-                              'RS_GCF_2': 'd__B;g__Blautia_A;s__y',
-                              'GB_GCA_3': 'd__B;g__Other;s__z'})
-        out = gtdb_tree_collapse(fmt, taxonomy, 2)
+        lineage = 'd__B;p__P;c__C;o__O;f__F;'
+        taxonomy = pd.Series({'RS_GCF_1': lineage + 'g__Blautia_A;s__x',
+                              'RS_GCF_2': lineage + 'g__Blautia_A;s__y',
+                              'GB_GCA_3': lineage + 'g__Other;s__z'})
+        out = gtdb_tree_collapse(fmt, taxonomy, 6)
         self.assertEqual({t.name for t in out.tips()},
-                         {'d__B;g__Blautia_A', 'd__B;g__Other'})
+                         {lineage + 'g__Blautia_A', lineage + 'g__Other'})
         # written quoted, so q2-types' default reader keeps the underscores
         fmt2 = NewickFormat()
         with fmt2.open() as fh:
             out.write(fh, format='newick')
         back = skbio.TreeNode.read(str(fmt2), format='newick')
         self.assertEqual({t.name for t in back.tips()},
-                         {'d__B;g__Blautia_A', 'd__B;g__Other'})
+                         {lineage + 'g__Blautia_A', lineage + 'g__Other'})

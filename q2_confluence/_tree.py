@@ -15,6 +15,9 @@ from q2_types.tree import NewickFormat
 
 from ._taxonomy import _collapsed_name, _is_named
 
+# GTDB taxonomy strings always have these seven ranks.
+GTDB_RANKS = 7
+
 
 def gtdb_tree_collapse(tree: NewickFormat, taxonomy: pd.Series,
                        level: int) -> skbio.TreeNode:
@@ -27,7 +30,7 @@ def gtdb_tree_collapse(tree: NewickFormat, taxonomy: pd.Series,
     so they survive the default reader downstream.
     """
     tree = skbio.TreeNode.read(str(tree), format='newick',
-                               convert_underscores=False, verify=False)
+                               convert_underscores=False)
     return _collapse_tree(tree, taxonomy, level)
 
 
@@ -41,16 +44,17 @@ def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
     feature IDs of a table collapsed to the same level). A group of one tip
     is renamed; a larger group is replaced by its most recent common
     ancestor, which must contain no other tips (the group is monophyletic),
-    with a branch length of that ancestor's own length plus the mean
-    distance from it to the group's tips. Internal node names are cleared
-    and a single-child root is collapsed.
+    with a branch length of that ancestor's own length plus the median
+    distance from it to the group's tips. Internal node names are cleared.
     """
-    if level < 1:
-        raise ValueError(f'level must be at least 1, got {level}')
-    n_ranks = int(taxonomy.str.split(';').str.len().max())
-    if level > n_ranks:
-        raise ValueError(f'level {level} exceeds the {n_ranks} ranks in the '
-                         'taxonomy')
+    if not 1 <= level <= GTDB_RANKS:
+        raise ValueError(f'level must be between 1 and {GTDB_RANKS}, '
+                         f'got {level}')
+    n_ranks = taxonomy.str.count(';') + 1
+    if (n_ranks != GTDB_RANKS).any():
+        raise ValueError(f'{int((n_ranks != GTDB_RANKS).sum())} taxonomy '
+                         f'strings do not have the {GTDB_RANKS} GTDB ranks, '
+                         f'e.g. {taxonomy[n_ranks != GTDB_RANKS].iloc[0]!r}')
     tree = tree.copy()
     tips = list(tree.tips())
     missing = [t.name for t in tips if t.name not in taxonomy.index]
@@ -59,7 +63,8 @@ def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
                          f'taxonomy, e.g. {missing[:3]}')
     groups = defaultdict(list)
     for tip in tips:
-        groups[_collapsed_name(taxonomy[tip.name], level, n_ranks)].append(tip)
+        groups[_collapsed_name(taxonomy[tip.name], level,
+                               GTDB_RANKS)].append(tip)
     unnamed = [n for n in groups if not _is_named(n)]
     if unnamed:
         raise ValueError(f'{len(unnamed)} taxa have no name at level {level}, '
@@ -76,19 +81,16 @@ def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
         if mrca.count(tips=True) != len(nodes):
             raise ValueError(f'{name} is not monophyletic: its {len(nodes)} '
                              f'tips share an ancestor with other tips')
-        depth = statistics.fmean(n.accumulate_to_ancestor(mrca) for n in nodes)
+        depth = statistics.median(n.accumulate_to_ancestor(mrca)
+                                  for n in nodes)
         plan.append((mrca, name, depth))
     for node, name, depth in plan:
         node.children = []
         node.name = name
-        node.length = (node.length or 0.0) + depth
+        # The root has no branch length (None); it is the ancestor when a
+        # level leaves a single taxon.
+        node.length = depth if node.length is None else node.length + depth
     for node in tree.non_tips(include_self=True):
         node.name = None
-    while len(tree.children) == 1:
-        child = tree.children[0]
-        tree.remove(child)
-        child.parent = None
-        child.length = None
-        tree = child
     tree.clear_caches()
     return tree

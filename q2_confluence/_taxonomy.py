@@ -13,7 +13,6 @@ _UNNAMED = re.compile(r'^([a-z]__)?(__)?$')
 
 
 def _collapsed_name(taxon: str, level: int, n_ranks: int) -> str:
-    # TODO: this is AI-generated code; human review pending
     """The feature ID q2-taxa's `collapse` gives a taxon at `level`.
 
     Tokens are stripped, the string is padded with '__' to `n_ranks`
@@ -34,6 +33,5 @@ def _collapsed_name(taxon: str, level: int, n_ranks: int) -> str:
 
 
 def _is_named(name: str) -> bool:
-    # TODO: this is AI-generated code; human review pending
     """True when the last rank token of a collapsed name carries a name."""
     return _UNNAMED.match(name.rsplit(';', 1)[-1].strip()) is None
