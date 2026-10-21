@@ -22,6 +22,7 @@ from q2_confluence._examples import (_relative_frequency_example,
                                      _paired_report_example,
                                      _summarize_paired_features_example,
                                      _summarize_inputs_two_studies)
+from q2_confluence._formats import GTDBNewickFormat, _gtdb_newick_to_newick
 from q2_confluence._inputs import summarize_inputs
 from q2_confluence._integrate import integrate
 from q2_confluence._metadata import merge_metadata
@@ -43,6 +44,13 @@ plugin = Plugin(
 
 # Provisional actions are registered with deprecated=True and name the plugin
 # they are expected to move to, so users see up front what is not stable here.
+
+# GTDB's released trees import as Phylogeny[Rooted] through this format
+# (qiime tools import --input-format GTDBNewickFormat); the transformer drops
+# the root label UniFrac cannot parse. Provisional: expected to move to
+# q2-types or q2-phylogeny.
+plugin.register_formats(GTDBNewickFormat)
+plugin.register_transformer(_gtdb_newick_to_newick)
 
 plugin.methods.register_function(
     function=gtdb_tree_collapse,

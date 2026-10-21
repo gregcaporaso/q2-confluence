@@ -23,6 +23,12 @@ The workflow, in order (`qiime confluence <action> --help` for the details):
 The amplicon side (denoising, GTDB classification, the SILVA-based organelle filter) and the metagenome read preparation (trimming, host read removal) are stock QIIME 2 and MOSHPIT actions, and the metagenome profile comes from the `sylph` plugin ([mosh-sylph](https://github.com/gregcaporaso/mosh-sylph), thin wrappers around sylph and sylph-tax; the sylph actions this plugin carried provisionally moved there on 2026-10-16). The tutorial uses both plugins in one environment.
 Every action carries a usage example that the test suite executes.
 
+## Formats
+
+| Format | Role | Status |
+|---|---|---|
+| `GTDBNewickFormat` | A GTDB reference tree as released (`bac120_r232.tree`): `qiime tools import --type 'Phylogeny[Rooted]' --input-format GTDBNewickFormat` takes the file unchanged, and the transformer to the stock Newick view drops the quoted root label without a branch length (`'100:d__Bacteria'`) that UniFrac's parser (unifrac-binaries 1.5, run by `diversity beta-phylogenetic`) aborts on; nothing else in the tree changes | provisional, intended for q2-types or q2-phylogeny |
+
 ## Development installation
 
 The plugin targets the unreleased 2026.10 epoch, so the base environment is the `qiime2` distribution's development environment, created as in the [QIIME 2 development environment guide](https://develop.qiime2.org/en/stable/plugins/how-to-guides/set-up-development-environment.html) from the distribution's `dev/latest/passed` environment file for your platform; the plugin's extras (sylph, sylph-tax, the documentation toolchain, the linters) are layered on with `conda env update`.
