@@ -12,11 +12,11 @@ The workflow, in order (`qiime confluence <action> --help` for the details):
 
 | Action | Role | Status |
 |---|---|---|
-| `gtdb-tree-collapse` | A reference tree collapsed to one tip per taxon at a level, named like `taxa collapse` IDs, plus a log (`ImmutableMetadata` keyed by tip: original node name, genome count, genome IDs); once per release and level | provisional, intended for q2-phylogeny |
+| `gtdb-tree-collapse` | A reference tree collapsed to one tip per taxon at a level, named like `taxa collapse` IDs, plus a log (`ImmutableMetadata` keyed by tip: original node name, genome count, genome IDs); once per release and level, for stock diversity actions on tables collapsed with `taxa collapse` (the workflow itself integrates at the genome level and does not collapse) | provisional, intended for q2-phylogeny |
 | `summarize-inputs` | Which sample IDs the tables and metadata of the studies share | stays |
 | `merge-metadata` | Union or intersection of several studies' metadata | stays |
 | `relative-frequency` | Proportions from counts or from a relative table whose features were filtered; `integrate` applies it to every source | provisional, intended for q2-feature-table |
-| `integrate` | Every source (counts or proportions) renormalized and merged in one feature space, with `original-sample-id` and `profile-type` metadata columns; sample IDs become `<id>-<key>`. Without a level the features are taken as they are (GTDB genome IDs, checked against the tips of the GTDB tree) and the taxonomy comes from the inputs; with a level each source is first collapsed to it and its unnamed features dropped, against a tree from `gtdb-tree-collapse` | stays |
+| `integrate` | Every source (counts or proportions, keyed by GTDB genome ID) renormalized and merged in the feature space of the reference genomes, checked against the tips of the GTDB tree, with the taxonomy from the inputs and `original-sample-id` and `profile-type` metadata columns; sample IDs become `<id>-<key>` | stays |
 | `paired-report` | On the samples every source profiled: Bray-Curtis, Jaccard and UniFrac on the proportions (no rarefaction), PERMANOVA by profile type and a PCoA scatter plot per metric, random forest with nested cross-validation, per-feature summary (every feature, searchable, with the taxonomy beside each ID when given), one report plus the summary as metadata | stays |
 | `summarize-paired-features` | The per-feature summary (importance, rank, per-profile-type mean and prevalence, log2 ratio, direction) as `ImmutableMetadata`; `paired-report` tabulates it | stays |
 

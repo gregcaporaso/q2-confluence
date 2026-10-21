@@ -7,16 +7,12 @@
 # ----------------------------------------------------------------------------
 
 import biom
+import numpy as np
 import pandas as pd
 import qiime2
 from qiime2.plugin.testing import TestPluginBase
 
 from q2_confluence import _examples as ex
-
-BLAUTIA = ('d__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;'
-           'f__Lachnospiraceae;g__Blautia')
-BACILLUS = ('d__Bacteria;p__Bacillota;c__Bacilli;o__Bacillales;f__Bacillaceae;'
-            'g__Bacillus')
 
 
 class IntegrateTests(TestPluginBase):
@@ -26,36 +22,34 @@ class IntegrateTests(TestPluginBase):
         # TODO: this is AI-generated code; human review pending
         super().setUp()
         self.integrate = self.plugin.pipelines['integrate']
-        collapse = self.plugin.methods['gtdb_tree_collapse']
-        self.genus_tree, _ = collapse(ex._reference_tree_factory(),
-                                      ex._reference_taxonomy_factory(), 6)
-        self.tables = {'amplicon': ex._amplicon_table_three_asvs_factory(),
-                       'metagenome': ex._metagenome_relative_factory()}
-        self.taxonomies = {'amplicon': ex._amplicon_taxonomy_factory(),
-                           'metagenome': ex._metagenome_taxonomy_factory()}
+        self.tree = ex._reference_tree_factory()
+        taxonomy = ex._reference_taxonomy_factory()
+        self.tables = {'amplicon': ex._amplicon_genome_table_factory(),
+                       'metagenome': ex._metagenome_genome_table_factory()}
+        self.taxonomies = {'amplicon': taxonomy, 'metagenome': taxonomy}
         self.metadata = {'amplicon': ex._amplicon_metadata_factory(),
                          'metagenome': ex._metagenome_metadata_factory()}
 
-    def test_genus(self):
+    def test_genomes(self):
         # TODO: this is AI-generated code; human review pending
-        rel, taxonomy, md = self.integrate(
-            self.tables, self.taxonomies, self.genus_tree, 6,
-            metadata=self.metadata)
+        rel, taxonomy, md = self.integrate(self.tables, self.taxonomies,
+                                           self.tree, metadata=self.metadata)
         rel = rel.view(biom.Table)
-        self.assertEqual(sorted(rel.ids(axis='observation')), [BACILLUS, BLAUTIA])
+        self.assertEqual(sorted(rel.ids(axis='observation')),
+                         ['GB_GCA_3', 'RS_GCF_1', 'RS_GCF_2', 'RS_GCF_4'])
         self.assertEqual(sorted(rel.ids()),
                          ['sample-1-amplicon', 'sample-2-amplicon',
                           'sample-2-metagenome', 'sample-3-amplicon',
                           'sample-3-metagenome'])
-        # asv-3 (unnamed at genus) is dropped and the sample renormalized:
-        # sample-1 amplicon = 12 Blautia, 3 Bacillus
-        self.assertAlmostEqual(rel.get_value_by_ids(BLAUTIA, 'sample-1-amplicon'),
-                               12 / 15)
+        # nothing is collapsed or dropped: sample-1 amplicon = 12 + 3 + 1 counts
+        self.assertAlmostEqual(rel.get_value_by_ids('RS_GCF_1', 'sample-1-amplicon'),
+                               12 / 16)
         # the metagenome source came in as proportions
-        self.assertAlmostEqual(rel.get_value_by_ids(BLAUTIA, 'sample-2-metagenome'),
-                               0.6)
+        self.assertAlmostEqual(rel.get_value_by_ids('RS_GCF_2', 'sample-2-metagenome'),
+                               0.4)
         tax = taxonomy.view(pd.Series)
-        self.assertEqual(tax[BLAUTIA], BLAUTIA)
+        self.assertEqual(sorted(tax.index), sorted(rel.ids(axis='observation')))
+        self.assertEqual(tax['GB_GCA_3'], ex._TAXONOMY['GB_GCA_3'])
         md = md.view(qiime2.Metadata).to_dataframe()
         self.assertEqual(md.loc['sample-1-amplicon', 'original-sample-id'], 'sample-1')
         self.assertEqual(md.loc['sample-1-amplicon', 'profile-type'], 'amplicon')
@@ -63,67 +57,38 @@ class IntegrateTests(TestPluginBase):
         self.assertAlmostEqual(md.loc['sample-3-metagenome', 'read-pairs-millions'],
                                38.7)
 
-    def test_genomes(self):
+    def test_without_metadata(self):
         # TODO: this is AI-generated code; human review pending
-        # no level: the tables are keyed by the reference tree's tips already
-        reference_taxonomy = ex._reference_taxonomy_factory()
-        rel, taxonomy, md = self.integrate(
-            {'amplicon': ex._amplicon_genome_table_factory(),
-             'metagenome': ex._metagenome_genome_table_factory()},
-            {'amplicon': reference_taxonomy, 'metagenome': reference_taxonomy},
-            ex._reference_tree_factory())
-        rel = rel.view(biom.Table)
-        self.assertEqual(sorted(rel.ids(axis='observation')),
-                         ['GB_GCA_3', 'RS_GCF_1', 'RS_GCF_2', 'RS_GCF_4'])
-        # nothing is collapsed or dropped: sample-1 amplicon = 12 + 3 + 1 counts
-        self.assertAlmostEqual(rel.get_value_by_ids('RS_GCF_1', 'sample-1-amplicon'),
-                               12 / 16)
-        self.assertAlmostEqual(rel.get_value_by_ids('RS_GCF_2', 'sample-2-metagenome'),
-                               0.4)
-        tax = taxonomy.view(pd.Series)
-        self.assertEqual(sorted(tax.index), sorted(rel.ids(axis='observation')))
-        self.assertEqual(tax['GB_GCA_3'], ex._TAXONOMY['GB_GCA_3'])
-        self.assertEqual(sorted(md.view(qiime2.Metadata).to_dataframe().columns),
-                         ['original-sample-id', 'profile-type'])
+        _, _, md = self.integrate(self.tables, self.taxonomies, self.tree)
+        cols = md.view(qiime2.Metadata).to_dataframe().columns
+        self.assertEqual(sorted(cols), ['original-sample-id', 'profile-type'])
 
-    def test_genomes_missing_taxonomy(self):
+    def test_missing_taxonomy(self):
         # TODO: this is AI-generated code; human review pending
         partial = ex._taxonomy_factory({'RS_GCF_1': ex._TAXONOMY['RS_GCF_1']})
         with self.assertRaisesRegex(ValueError, 'features have no taxonomy'):
-            self.integrate(
-                {'amplicon': ex._amplicon_genome_table_factory(),
-                 'metagenome': ex._metagenome_genome_table_factory()},
-                {'amplicon': partial, 'metagenome': partial},
-                ex._reference_tree_factory())
+            self.integrate(self.tables,
+                           {'amplicon': partial, 'metagenome': partial},
+                           self.tree)
 
-    def test_genomes_not_tips(self):
+    def test_not_tips(self):
         # TODO: this is AI-generated code; human review pending
         # a table keyed by unprefixed accessions is not in the tree's space
+        table = biom.Table(np.array([[0.6, 0.1], [0.4, 0.9]]),
+                           ['GCF_1', 'GCF_2'], ['sample-2', 'sample-3'])
+        unprefixed = qiime2.Artifact.import_data(
+            'FeatureTable[RelativeFrequency]', table)
+        taxonomy = ex._taxonomy_factory({'GCF_1': ex._TAXONOMY['RS_GCF_1'],
+                                         'GCF_2': ex._TAXONOMY['RS_GCF_2']})
         with self.assertRaisesRegex(ValueError, 'not tips of the tree'):
-            self.integrate(
-                {'amplicon': ex._amplicon_genome_table_factory(),
-                 'metagenome': ex._metagenome_relative_factory()},
-                {'amplicon': ex._reference_taxonomy_factory(),
-                 'metagenome': ex._metagenome_taxonomy_factory()},
-                ex._reference_tree_factory())
-
-    def test_without_metadata(self):
-        # TODO: this is AI-generated code; human review pending
-        _, _, md = self.integrate(self.tables, self.taxonomies,
-                                  self.genus_tree, 6)
-        cols = md.view(qiime2.Metadata).to_dataframe().columns
-        self.assertEqual(sorted(cols),
-                         ['original-sample-id', 'profile-type'])
-
-    def test_tree_at_another_level(self):
-        # TODO: this is AI-generated code; human review pending
-        family_tree, _ = self.plugin.methods['gtdb_tree_collapse'](
-            ex._reference_tree_factory(), ex._reference_taxonomy_factory(), 5)
-        with self.assertRaisesRegex(ValueError, 'not tips of the tree'):
-            self.integrate(self.tables, self.taxonomies, family_tree, 6)
+            self.integrate({'amplicon': self.tables['amplicon'],
+                            'metagenome': unprefixed},
+                           {'amplicon': self.taxonomies['amplicon'],
+                            'metagenome': taxonomy},
+                           self.tree)
 
     def test_key_mismatch(self):
         # TODO: this is AI-generated code; human review pending
         with self.assertRaisesRegex(ValueError, 'same keys'):
             self.integrate(self.tables, {'amplicon': self.taxonomies['amplicon']},
-                           self.genus_tree, 6)
+                           self.tree)

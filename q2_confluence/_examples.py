@@ -158,55 +158,11 @@ def _merge_metadata_union(use):
     )
 
 
-_ASV_TAXONOMY = {
-    'asv-1': 'd__Bacteria;p__Bacillota_A;c__Clostridia;o__Lachnospirales;'
-             'f__Lachnospiraceae;g__Blautia;s__',
-    'asv-2': 'd__Bacteria;p__Bacillota;c__Bacilli;o__Bacillales;'
-             'f__Bacillaceae;g__Bacillus;s__Bacillus subtilis',
-    'asv-3': 'd__Bacteria;p__Bacillota;c__Bacilli;o__Bacillales;'
-             'f__Bacillaceae;g__;s__',
-}
-
-_GENOME_TAXONOMY = {
-    'GCF_1': _TAXONOMY['RS_GCF_1'],
-    'GCF_2': _TAXONOMY['RS_GCF_4'],
-}
-
-
 def _taxonomy_factory(mapping):
     # TODO: this is AI-generated code; human review pending
     df = pd.DataFrame({'Taxon': pd.Series(mapping)})
     df.index.name = 'Feature ID'
     return Artifact.import_data('FeatureData[Taxonomy]', df)
-
-
-def _amplicon_taxonomy_factory():
-    # TODO: this is AI-generated code; human review pending
-    return _taxonomy_factory(_ASV_TAXONOMY)
-
-
-def _metagenome_taxonomy_factory():
-    # TODO: this is AI-generated code; human review pending
-    return _taxonomy_factory(_GENOME_TAXONOMY)
-
-
-def _amplicon_table_three_asvs_factory():
-    # TODO: this is AI-generated code; human review pending
-    import biom
-    import numpy as np
-    table = biom.Table(np.array([[12, 0, 7], [3, 9, 1], [1, 2, 0]]),
-                       ['asv-1', 'asv-2', 'asv-3'],
-                       ['sample-1', 'sample-2', 'sample-3'])
-    return Artifact.import_data('FeatureTable[Frequency]', table)
-
-
-def _metagenome_relative_factory():
-    # TODO: this is AI-generated code; human review pending
-    import biom
-    import numpy as np
-    table = biom.Table(np.array([[0.6, 0.1], [0.4, 0.9]]),
-                       ['GCF_1', 'GCF_2'], ['sample-2', 'sample-3'])
-    return Artifact.import_data('FeatureTable[RelativeFrequency]', table)
 
 
 # --- the genome space: tables keyed by the reference tree's tips -------------

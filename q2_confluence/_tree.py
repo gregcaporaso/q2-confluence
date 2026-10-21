@@ -16,6 +16,12 @@ from q2_types.tree import NewickFormat
 
 from ._taxonomy import _collapsed_name, _is_named
 
+# Review status (@gregcaporaso, 2026-10-21): the code in this module passed
+# review; its tests, tests/test_tree.py, have not been reviewed yet. The
+# action is kept although the tutorial's workflow no longer collapses the
+# tree: a collapsed tree serves stock diversity actions on tables collapsed
+# with taxa collapse.
+
 # GTDB taxonomy strings always have these seven ranks.
 GTDB_RANKS = 7
 
