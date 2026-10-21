@@ -25,6 +25,15 @@ class CollapseTreeTests(unittest.TestCase):
 
     def setUp(self):
         # GTDB-style: bootstrap:taxon labels on internal nodes, genome tips.
+        #                               /-g1
+        #                     /100.0:g__A
+        #           /90.0:f__F          \-g2
+        #          |         |
+        # -root----|          \-g3
+        #          |
+        #          |          /-g4
+        #           \95.0:g__C
+        #                     \-g5
         # TODO: this is AI-generated code; human review pending
         self.tree = _tree(
             "(((g1:0.1,g2:0.3)'100.0:g__A':0.5,g3:0.4)'90.0:f__F':1.0,"
@@ -39,6 +48,12 @@ class CollapseTreeTests(unittest.TestCase):
 
     def test_genus(self):
         # TODO: this is AI-generated code; human review pending
+        # Tips named by the collapsed string, shown here by their last rank:
+        #                     /-g__A
+        #           /90.0:f__F
+        # -root----|          \-g__B
+        #          |
+        #           \-g__C
         out = _collapse_tree(self.tree, self.taxonomy, 6)
         tips = {t.name: t for t in out.tips()}
         self.assertEqual(set(tips), {'d__B;p__P;c__C;o__O;f__F;g__A',
@@ -63,6 +78,9 @@ class CollapseTreeTests(unittest.TestCase):
 
     def test_family_and_root_collapse(self):
         # TODO: this is AI-generated code; human review pending
+        #           /-f__F
+        # -root----|
+        #           \-f__G
         out = _collapse_tree(self.tree, self.taxonomy, 5)
         self.assertEqual({t.name for t in out.tips()},
                          {'d__B;p__P;c__C;o__O;f__F', 'd__B;p__P;c__C;o__O;f__G'})
@@ -115,6 +133,11 @@ class CollapseTreeTests(unittest.TestCase):
 class GtdbTreeCollapseTests(unittest.TestCase):
 
     def test_underscores_kept_and_names_round_trip(self):
+        #                     /-RS_GCF_1
+        #           /100.0:g__A
+        # ---------|          \-RS_GCF_2
+        #          |
+        #           \-GB_GCA_3
         fmt = NewickFormat()
         with fmt.open() as fh:
             fh.write("((RS_GCF_1:0.1,RS_GCF_2:0.3)'100.0:g__A':0.5,GB_GCA_3:0.4);")
