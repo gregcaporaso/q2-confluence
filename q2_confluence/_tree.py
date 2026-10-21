@@ -20,7 +20,6 @@ GTDB_RANKS = 7
 
 def gtdb_tree_collapse(tree: NewickFormat, taxonomy: pd.Series,
                        level: int) -> skbio.TreeNode:
-    # TODO: this is AI-generated code; human review pending
     """The registered action: read the Newick file with underscores kept.
 
     q2-types' default view converts unquoted underscores to spaces (Newick
@@ -35,7 +34,6 @@ def gtdb_tree_collapse(tree: NewickFormat, taxonomy: pd.Series,
 
 def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
                    level: int) -> skbio.TreeNode:
-    # TODO: this is AI-generated code; human review pending
     """Collapse a reference tree to one tip per taxon at `level`.
 
     Every tip must be in `taxonomy`. Tips are grouped by their taxonomy
@@ -46,9 +44,6 @@ def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
     and becomes the tip, keeping its own branch length. The other internal
     node names (GTDB's bootstrap and taxon labels) are kept.
     """
-    # EVAN: thoughts on this validation here? Technically the interface takes
-    # care of it through our range settings, but it also doesn't seem to hurt
-    # there.
     if not 1 <= level <= GTDB_RANKS:
         raise ValueError(f'level must be between 1 and {GTDB_RANKS}, '
                          f'got {level}')
