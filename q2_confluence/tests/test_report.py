@@ -22,21 +22,20 @@ class PairedReportTests(TestPluginBase):
     def setUp(self):
         # TODO: this is AI-generated code; human review pending
         super().setUp()
-        collapse = self.plugin.methods['gtdb_tree_collapse']
-        self.tree, _ = collapse(ex._reference_tree_factory(),
-                                ex._reference_taxonomy_factory(), 6)
-        self.table, _, self.metadata = self.plugin.pipelines['integrate'](
+        # the genome space: the reference tree as it is, no level
+        self.tree = ex._reference_tree_factory()
+        taxonomy = ex._reference_taxonomy_factory()
+        self.table, self.taxonomy, self.metadata = self.plugin.pipelines['integrate'](
             {'amplicon': ex._paired_amplicon_table_factory(),
              'metagenome': ex._paired_metagenome_table_factory()},
-            {'amplicon': ex._paired_amplicon_taxonomy_factory(),
-             'metagenome': ex._paired_metagenome_taxonomy_factory()},
-            self.tree, 6, metadata={'study': ex._paired_metadata_factory()})
+            {'amplicon': taxonomy, 'metagenome': taxonomy},
+            self.tree, metadata={'study': ex._paired_metadata_factory()})
 
     def test_report(self):
         # TODO: this is AI-generated code; human review pending
         report, dms, importance, summary = self.plugin.pipelines['paired_report'](
-            self.table, self.tree, self.metadata, permutations=99,
-            cv=3, n_estimators=50, random_state=1)
+            self.table, self.tree, self.metadata, taxonomy=self.taxonomy,
+            permutations=99, cv=3, n_estimators=50, random_state=1)
         self.assertEqual(sorted(dms.keys()),
                          ['braycurtis', 'jaccard', 'unweighted_unifrac',
                           'weighted_unifrac'])
@@ -53,8 +52,33 @@ class PairedReportTests(TestPluginBase):
         self.assertEqual(df['rank'].tolist(), [1, 2, 3])
         with tempfile.TemporaryDirectory() as d:
             report.export_data(d)
-            names = {f for _, _, files in os.walk(d) for f in files}
-            self.assertIn('metadata.tsv', names)   # the tabulated summary
+            tabulated = [os.path.join(root, f) for root, _, files in os.walk(d)
+                         for f in files if f == 'metadata.tsv']
+            self.assertEqual(len(tabulated), 1)   # the tabulated summary
+            with open(tabulated[0]) as fh:
+                header = fh.readline().rstrip('\n').split('\t')
+            self.assertEqual(header[-1], 'Taxon')   # the taxonomy joined
+
+    def test_report_without_taxonomy(self):
+        # TODO: this is AI-generated code; human review pending
+        report, _, _, _ = self.plugin.pipelines['paired_report'](
+            self.table, self.tree, self.metadata, permutations=99,
+            cv=3, n_estimators=50, random_state=1)
+        with tempfile.TemporaryDirectory() as d:
+            report.export_data(d)
+            tabulated = [os.path.join(root, f) for root, _, files in os.walk(d)
+                         for f in files if f == 'metadata.tsv']
+            with open(tabulated[0]) as fh:
+                header = fh.readline().rstrip('\n').split('\t')
+            self.assertNotIn('Taxon', header)
+
+    def test_taxonomy_missing_features(self):
+        # TODO: this is AI-generated code; human review pending
+        partial = ex._taxonomy_factory({'RS_GCF_1': ex._TAXONOMY['RS_GCF_1']})
+        with self.assertRaisesRegex(ValueError, 'not in the taxonomy'):
+            self.plugin.pipelines['paired_report'](
+                self.table, self.tree, self.metadata, taxonomy=partial,
+                permutations=99, cv=3, n_estimators=50)
 
     def test_summary_directions(self):
         # TODO: this is AI-generated code; human review pending

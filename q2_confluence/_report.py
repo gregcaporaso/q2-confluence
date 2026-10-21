@@ -21,15 +21,17 @@ _METRICS = {'braycurtis': ('Bray-Curtis', False),
             'weighted_unifrac': ('weighted UniFrac', True)}
 
 
-def paired_report(ctx, table, tree, metadata, permutations=999, cv=10,
-                  n_estimators=500, random_state=None, n_jobs=1):
+def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
+                  cv=10, n_estimators=500, random_state=None, n_jobs=1):
     # TODO: this is AI-generated code; human review pending
     """How far apart are the sources, on the samples every source profiled?
 
     `table` and `metadata` come from integrate (metadata columns
-    original-sample-id and profile-type). Samples whose original ID is present
-    in every profile type are kept; the rest are dropped. Distances are computed on
-    the proportions as they are: no rarefaction, no counts.
+    original-sample-id and profile-type), as does `taxonomy`, which when
+    given is tabulated beside the per-feature summary. Samples whose
+    original ID is present in every profile type are kept; the rest are
+    dropped. Distances are computed on the proportions as they are: no
+    rarefaction, no counts.
     """
     full_md = metadata.view(qiime2.Metadata)
     md = full_md.to_dataframe()
@@ -87,8 +89,15 @@ def paired_report(ctx, table, tree, metadata, permutations=999, cv=10,
                   truth=source_col)
     summary, = summarize(table=table, importance=rf.feature_importance,
                          metadata=kept_md)
-    sections['Per-feature summary'], = tabulate(
-        input=summary.view(qiime2.Metadata))   # the artifact stays in provenance
+    summary_md = summary.view(qiime2.Metadata)   # the artifact stays in provenance
+    if taxonomy is not None:
+        taxa = taxonomy.view(qiime2.Metadata)
+        missing = set(summary_md.ids) - set(taxa.ids)
+        if missing:
+            raise ValueError(f'{len(missing)} features of the table are not in '
+                             f'the taxonomy, e.g. {sorted(missing)[:3]}')
+        summary_md = summary_md.merge(taxa.filter_ids(summary_md.ids))
+    sections['Per-feature summary'], = tabulate(input=summary_md)
     report = ctx.make_report(matryoshka_template, sections)
     return report, distance_matrices, rf.feature_importance, summary
 

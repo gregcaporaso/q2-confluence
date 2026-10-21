@@ -209,41 +209,57 @@ def _metagenome_relative_factory():
     return Artifact.import_data('FeatureTable[RelativeFrequency]', table)
 
 
-def _integrate_at_genus(use):
+# --- the genome space: tables keyed by the reference tree's tips -------------
+
+_GENOMES = ['RS_GCF_1', 'GB_GCA_3', 'RS_GCF_4']
+
+
+def _amplicon_genome_table_factory():
+    # TODO: this is AI-generated code; human review pending
+    """ASV counts summed per reference genome, as closed-reference
+    clustering against the GTDB SSU reference leaves them."""
+    import biom
+    import numpy as np
+    table = biom.Table(np.array([[12, 0, 7], [3, 9, 1], [1, 2, 0]]), _GENOMES,
+                       ['sample-1', 'sample-2', 'sample-3'])
+    return Artifact.import_data('FeatureTable[Frequency]', table)
+
+
+def _metagenome_genome_table_factory():
+    # TODO: this is AI-generated code; human review pending
+    """sylph's taxonomic abundance per genome, GTDB-prefixed accessions."""
+    import biom
+    import numpy as np
+    table = biom.Table(np.array([[0.6, 0.1], [0.4, 0.9]]),
+                       ['RS_GCF_1', 'RS_GCF_2'], ['sample-2', 'sample-3'])
+    return Artifact.import_data('FeatureTable[RelativeFrequency]', table)
+
+
+def _integrate_genomes(use):
     # TODO: this is AI-generated code; human review pending
     tree = use.init_artifact('reference-tree', _reference_tree_factory)
     taxonomy = use.init_artifact('reference-taxonomy',
                                  _reference_taxonomy_factory)
-    genus_tree, _ = use.action(
-        use.UsageAction('confluence', 'gtdb_tree_collapse'),
-        use.UsageInputs(tree=tree, taxonomy=taxonomy, level=6),
-        use.UsageOutputNames(collapsed_tree='genus-tree',
-                             collapse_log='genus-tree-collapse-log'),
-    )
-    amplicon = use.init_artifact('amplicon-table',
-                                 _amplicon_table_three_asvs_factory)
-    amplicon_tax = use.init_artifact('amplicon-taxonomy',
-                                     _amplicon_taxonomy_factory)
-    metagenome = use.init_artifact('metagenome-table',
-                                   _metagenome_relative_factory)
-    metagenome_tax = use.init_artifact('metagenome-taxonomy',
-                                       _metagenome_taxonomy_factory)
+    amplicon = use.init_artifact('amplicon-genome-table',
+                                 _amplicon_genome_table_factory)
+    metagenome = use.init_artifact('metagenome-genome-table',
+                                   _metagenome_genome_table_factory)
     amplicon_md = use.init_artifact('amplicon-metadata', _amplicon_metadata_factory)
     metagenome_md = use.init_artifact('metagenome-metadata',
                                       _metagenome_metadata_factory)
     tables = use.construct_artifact_collection(
         'tables', {'amplicon': amplicon, 'metagenome': metagenome})
     taxonomies = use.construct_artifact_collection(
-        'taxonomies', {'amplicon': amplicon_tax, 'metagenome': metagenome_tax})
+        'taxonomies', {'amplicon': taxonomy, 'metagenome': taxonomy})
     metadata = use.construct_artifact_collection(
         'metadata', {'amplicon': amplicon_md, 'metagenome': metagenome_md})
     use.action(
         use.UsageAction('confluence', 'integrate'),
-        use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=genus_tree,
-                        level=6, metadata=metadata),
-        use.UsageOutputNames(relative_table='genus-relative-table',
-                             taxonomy='genus-taxonomy',
-                             integrated_metadata='genus-metadata'),
+        use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=tree,
+                        metadata=metadata),
+        use.UsageOutputNames(relative_table='genome-relative-table',
+                             taxonomy='genome-taxonomy',
+                             integrated_metadata='genome-metadata'),
     )
 
 
@@ -263,21 +279,12 @@ def _paired_counts(rng, bias):
 
 def _paired_amplicon_table_factory():
     # TODO: this is AI-generated code; human review pending
+    """Closed-reference counts per genome; the same three genomes sylph sees."""
     import biom
     import numpy as np
     rng = np.random.default_rng(1)
-    counts = _paired_counts(rng, 0.2)
-    counts = np.vstack([counts, rng.integers(1, 20, size=(1, 6))])  # unnamed ASV
-    table = biom.Table(counts, ['asv-1', 'asv-2', 'asv-3', 'asv-4'],
-                       _PAIRED_SAMPLES)
+    table = biom.Table(_paired_counts(rng, 0.2), _GENOMES, _PAIRED_SAMPLES)
     return Artifact.import_data('FeatureTable[Frequency]', table)
-
-
-def _paired_amplicon_taxonomy_factory():
-    # TODO: this is AI-generated code; human review pending
-    return _taxonomy_factory({
-        'asv-1': _TAXONOMY['RS_GCF_1'], 'asv-2': _TAXONOMY['GB_GCA_3'],
-        'asv-3': _TAXONOMY['RS_GCF_4'], 'asv-4': _ASV_TAXONOMY['asv-3']})
 
 
 def _paired_metagenome_table_factory():
@@ -286,15 +293,8 @@ def _paired_metagenome_table_factory():
     import numpy as np
     rng = np.random.default_rng(2)
     counts = _paired_counts(rng, 5.0) * 1000
-    table = biom.Table(counts, ['GCF_1', 'GCA_3', 'GCF_4'], _PAIRED_SAMPLES)
+    table = biom.Table(counts, _GENOMES, _PAIRED_SAMPLES)
     return Artifact.import_data('FeatureTable[Frequency]', table)
-
-
-def _paired_metagenome_taxonomy_factory():
-    # TODO: this is AI-generated code; human review pending
-    return _taxonomy_factory({'GCF_1': _TAXONOMY['RS_GCF_1'],
-                              'GCA_3': _TAXONOMY['GB_GCA_3'],
-                              'GCF_4': _TAXONOMY['RS_GCF_4']})
 
 
 def _paired_metadata_factory():
@@ -308,37 +308,29 @@ def _paired_report_example(use):
     tree = use.init_artifact('reference-tree', _reference_tree_factory)
     taxonomy = use.init_artifact('reference-taxonomy',
                                  _reference_taxonomy_factory)
-    genus_tree, _ = use.action(
-        use.UsageAction('confluence', 'gtdb_tree_collapse'),
-        use.UsageInputs(tree=tree, taxonomy=taxonomy, level=6),
-        use.UsageOutputNames(collapsed_tree='genus-tree',
-                             collapse_log='genus-tree-collapse-log'),
-    )
     tables = use.construct_artifact_collection('tables', {
-        'amplicon': use.init_artifact('amplicon-table',
+        'amplicon': use.init_artifact('amplicon-genome-table',
                                       _paired_amplicon_table_factory),
-        'metagenome': use.init_artifact('metagenome-table',
+        'metagenome': use.init_artifact('metagenome-genome-table',
                                         _paired_metagenome_table_factory)})
-    taxonomies = use.construct_artifact_collection('taxonomies', {
-        'amplicon': use.init_artifact('amplicon-taxonomy',
-                                      _paired_amplicon_taxonomy_factory),
-        'metagenome': use.init_artifact('metagenome-taxonomy',
-                                        _paired_metagenome_taxonomy_factory)})
+    taxonomies = use.construct_artifact_collection(
+        'taxonomies', {'amplicon': taxonomy, 'metagenome': taxonomy})
     metadata = use.construct_artifact_collection('metadata', {
         'study': use.init_artifact('study-metadata', _paired_metadata_factory)})
-    relative_table, _, merged_metadata = use.action(
+    relative_table, genome_taxonomy, merged_metadata = use.action(
         use.UsageAction('confluence', 'integrate'),
-        use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=genus_tree,
-                        level=6, metadata=metadata),
-        use.UsageOutputNames(relative_table='genus-relative-table',
-                             taxonomy='genus-taxonomy',
-                             integrated_metadata='genus-metadata'),
+        use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=tree,
+                        metadata=metadata),
+        use.UsageOutputNames(relative_table='genome-relative-table',
+                             taxonomy='genome-taxonomy',
+                             integrated_metadata='genome-metadata'),
     )
     use.action(
         use.UsageAction('confluence', 'paired_report'),
-        use.UsageInputs(table=relative_table, tree=genus_tree,
-                        metadata=merged_metadata, permutations=99,
-                        cv=3, n_estimators=50, random_state=1),
+        use.UsageInputs(table=relative_table, tree=tree,
+                        metadata=merged_metadata, taxonomy=genome_taxonomy,
+                        permutations=99, cv=3, n_estimators=50,
+                        random_state=1),
         use.UsageOutputNames(report='paired-report',
                              distance_matrices='distance-matrices',
                              feature_importance='feature-importance',
@@ -350,9 +342,7 @@ def _paired_report_example(use):
 # --- and the random forest's importances, as integrate and paired-report
 # --- would produce them for three features of two sources
 
-_PAIRED_FEATURES = [_TAXONOMY['RS_GCF_1'].rsplit(';', 1)[0],
-                    _TAXONOMY['GB_GCA_3'].rsplit(';', 1)[0],
-                    _TAXONOMY['RS_GCF_4'].rsplit(';', 1)[0]]
+_PAIRED_FEATURES = _GENOMES
 _PAIRED_MERGED_IDS = [f'{s}-{k}' for k in ('amplicon', 'metagenome')
                       for s in _PAIRED_SAMPLES[:3]]
 

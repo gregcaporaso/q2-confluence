@@ -17,7 +17,7 @@ from q2_types.tree import Phylogeny, Rooted
 from q2_confluence import __version__
 from q2_confluence._examples import (_relative_frequency_example,
                                      _gtdb_tree_collapse_genus,
-                                     _integrate_at_genus,
+                                     _integrate_genomes,
                                      _merge_metadata_union,
                                      _paired_report_example,
                                      _summarize_paired_features_example,
@@ -173,32 +173,42 @@ plugin.pipelines.register_function(
              ('integrated_metadata', ImmutableMetadata)],
     input_descriptions={
         'tables': 'One table per source, counts or proportions, keyed by a '
-                  'label.',
+                  'label. Without a level, every table must already be keyed '
+                  'by the tree\'s tips (e.g. GTDB genome accessions from '
+                  'closed-reference clustering and from sylph).',
         'taxonomies': 'The taxonomy of each table\'s features, same keys, all '
                       'from the same reference release.',
-        'tree': 'The reference tree collapsed to the same level with '
+        'tree': 'The reference tree: as imported (GTDBNewickFormat) when no '
+                'level is given, or collapsed to the level with '
                 'gtdb-tree-collapse.',
         'metadata': 'The studies\' sample metadata, keyed by a label '
                     '(optional).'},
     parameter_descriptions={
-        'level': 'The taxonomic level to collapse to, as in taxa collapse.'},
+        'level': 'The taxonomic level to collapse to, as in taxa collapse. '
+                 'Omit it to integrate the features as they are, in the '
+                 'feature space of the tree\'s tips.'},
     output_descriptions={
-        'relative_table': 'Every source collapsed to the level, unnamed features '
-                          'dropped, as proportions; sample IDs are <id>-<key>.',
-        'taxonomy': 'The taxonomy of the merged features (their IDs).',
+        'relative_table': 'Every source (collapsed to the level and its '
+                          'unnamed features dropped, when a level is given) as '
+                          'proportions; sample IDs are <id>-<key>.',
+        'taxonomy': 'The taxonomy of the merged features: their IDs at a '
+                    'level, or the input taxonomies restricted to them '
+                    '(the first source\'s string when two differ).',
         'integrated_metadata': 'One row per merged sample: original-sample-id, '
                     'profile-type (the key), and the union of the studies\' '
                     'metadata.'},
-    name='Integrate profiles at one taxonomic level',
+    name='Integrate profiles in one feature space',
     description=(
-        'For each source: taxa collapse to the level, drop the features without '
-        'a name at that level, renormalize to proportions, suffix the sample '
-        'IDs with the key. Merge, check every feature is a tip of the tree, '
-        'derive the taxonomy from the feature IDs, and build the metadata. '
+        'For each source: with a level, taxa collapse to it and drop the '
+        'features without a name there; then renormalize to proportions and '
+        'suffix the sample IDs with the key. Merge, check every feature is a '
+        'tip of the tree, derive the taxonomy (from the feature IDs at a '
+        'level, from the input taxonomies otherwise), and build the metadata. '
         'Samples with the same ID in two sources are a pair, which '
         'paired-report uses.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
-    examples={'Amplicon and metagenome at genus': _integrate_at_genus},
+    examples={'Amplicon and metagenome in the genome space':
+              _integrate_genomes},
 )
 
 plugin.methods.register_function(
@@ -233,7 +243,8 @@ plugin.pipelines.register_function(
     function=paired_report,
     inputs={'table': FeatureTable[RelativeFrequency],
             'tree': Phylogeny[Rooted],
-            'metadata': ImmutableMetadata},
+            'metadata': ImmutableMetadata,
+            'taxonomy': FeatureData[Taxonomy]},
     parameters={'permutations': Int % Range(1, None),
                 'cv': Int % Range(2, None),
                 'n_estimators': Int % Range(1, None),
@@ -245,9 +256,12 @@ plugin.pipelines.register_function(
              ('feature_summary', ImmutableMetadata)],
     input_descriptions={
         'table': 'The relative table from integrate.',
-        'tree': 'The reference tree collapsed to the same level.',
+        'tree': 'The reference tree integrate was run with.',
         'metadata': 'The metadata from integrate (profile-type and '
-                    'original-sample-id).'},
+                    'original-sample-id).',
+        'taxonomy': 'The taxonomy from integrate (optional): tabulated beside '
+                    'the per-feature summary, so a genome ID shows its '
+                    'lineage.'},
     parameter_descriptions={
         'permutations': 'PERMANOVA permutations.',
         'cv': 'Folds of the nested cross-validation.',
@@ -258,7 +272,7 @@ plugin.pipelines.register_function(
         'report': 'One report: per metric, PERMANOVA by profile type and a PCoA '
                   'scatter plot; the random forest\'s confusion matrix; and '
                   'the per-feature summary tabulated (every feature, '
-                  'searchable and sortable).',
+                  'searchable and sortable, with the taxonomy when given).',
         'distance_matrices': 'The distance matrices, keyed by metric.',
         'feature_importance': 'The random forest\'s feature importances.',
         'feature_summary': 'The per-feature summary (summarize-paired-features) '

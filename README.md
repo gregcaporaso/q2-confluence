@@ -16,11 +16,11 @@ The workflow, in order (`qiime confluence <action> --help` for the details):
 | `summarize-inputs` | Which sample IDs the tables and metadata of the studies share | stays |
 | `merge-metadata` | Union or intersection of several studies' metadata | stays |
 | `relative-frequency` | Proportions from counts or from a relative table whose features were filtered; `integrate` applies it to every source | provisional, intended for q2-feature-table |
-| `integrate` | Every source (counts or proportions) collapsed to the level, unnamed features dropped, renormalized, merged with `original-sample-id` and `profile-type` metadata columns; sample IDs become `<id>-<key>` | stays |
-| `paired-report` | On the samples every source profiled: Bray-Curtis, Jaccard and UniFrac on the proportions (no rarefaction), PERMANOVA by profile type and a PCoA scatter plot per metric, random forest with nested cross-validation, per-feature summary (every feature, searchable), one report plus the summary as metadata | stays |
+| `integrate` | Every source (counts or proportions) renormalized and merged in one feature space, with `original-sample-id` and `profile-type` metadata columns; sample IDs become `<id>-<key>`. Without a level the features are taken as they are (GTDB genome IDs, checked against the tips of the GTDB tree) and the taxonomy comes from the inputs; with a level each source is first collapsed to it and its unnamed features dropped, against a tree from `gtdb-tree-collapse` | stays |
+| `paired-report` | On the samples every source profiled: Bray-Curtis, Jaccard and UniFrac on the proportions (no rarefaction), PERMANOVA by profile type and a PCoA scatter plot per metric, random forest with nested cross-validation, per-feature summary (every feature, searchable, with the taxonomy beside each ID when given), one report plus the summary as metadata | stays |
 | `summarize-paired-features` | The per-feature summary (importance, rank, per-profile-type mean and prevalence, log2 ratio, direction) as `ImmutableMetadata`; `paired-report` tabulates it | stays |
 
-The amplicon side (denoising, GTDB classification, the SILVA-based organelle filter) and the metagenome read preparation (trimming, host read removal) are stock QIIME 2 and MOSHPIT actions, and the metagenome profile comes from the `sylph` plugin ([mosh-sylph](https://github.com/gregcaporaso/mosh-sylph), thin wrappers around sylph and sylph-tax; the sylph actions this plugin carried provisionally moved there on 2026-10-16). The tutorial uses both plugins in one environment.
+The amplicon side (denoising, the SILVA-based organelle filter, closed-reference clustering of the ASVs against the GTDB SSU reference, which keys them by genome) and the metagenome read preparation (trimming, host read removal) are stock QIIME 2 and MOSHPIT actions, and the metagenome profile comes from the `sylph` plugin ([mosh-sylph](https://github.com/gregcaporaso/mosh-sylph), thin wrappers around sylph; its `profile-to-tables` keys the tables by GTDB genome ID). The tutorial uses both plugins in one environment.
 Every action carries a usage example that the test suite executes.
 
 ## Formats
@@ -28,6 +28,8 @@ Every action carries a usage example that the test suite executes.
 | Format | Role | Status |
 |---|---|---|
 | `GTDBNewickFormat` | A GTDB reference tree as released (`bac120_r232.tree`): `qiime tools import --type 'Phylogeny[Rooted]' --input-format GTDBNewickFormat` takes the file unchanged, and the transformer to the stock Newick view drops the quoted root label without a branch length (`'100:d__Bacteria'`) that UniFrac's parser (unifrac-binaries 1.5, run by `diversity beta-phylogenetic`) aborts on; nothing else in the tree changes | provisional, intended for q2-types or q2-phylogeny |
+
+Known limitations of the genome feature space, documented in the tutorial: only about half of GTDB r232's bacterial species representatives have a 16S in the SpeciesReps SSU reference, so an ASV whose genome has none can only land on a relative's genome at a lower identity threshold; and `vsearch cluster-features-closed-reference` keeps vsearch's first hit at or above the threshold (q2-vsearch does not expose `maxaccepts`), so among genomes with identical V4 regions the assignment is arbitrary.
 
 ## Development installation
 
