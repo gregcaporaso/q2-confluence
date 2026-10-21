@@ -44,12 +44,15 @@ class CollapseTreeTests(unittest.TestCase):
         self.assertEqual(set(tips), {'d__B;p__P;c__C;o__O;f__F;g__A',
                                      'd__B;p__P;c__C;o__O;f__F;g__B',
                                      'd__B;p__P;c__C;o__O;f__G;g__C'})
-        # stem 0.5 plus the median tip depth (0.1 + 0.3) / 2
-        self.assertAlmostEqual(tips['d__B;p__P;c__C;o__O;f__F;g__A'].length, 0.7)
+        # the ancestor keeps its own branch length; nothing is added for
+        # the tips sheared off below it
+        self.assertAlmostEqual(tips['d__B;p__P;c__C;o__O;f__F;g__A'].length, 0.5)
         # a single-genome genus keeps its branch
         self.assertAlmostEqual(tips['d__B;p__P;c__C;o__O;f__F;g__B'].length, 0.4)
-        self.assertAlmostEqual(tips['d__B;p__P;c__C;o__O;f__G;g__C'].length, 2.2)
-        self.assertTrue(all(n.name is None for n in out.non_tips(include_self=True)))
+        self.assertAlmostEqual(tips['d__B;p__P;c__C;o__O;f__G;g__C'].length, 2.0)
+        # the other internal labels are kept
+        self.assertEqual({n.name for n in out.non_tips(include_self=True)},
+                         {'90.0:f__F', 'root'})
 
     def test_species_is_a_rename(self):
         # TODO: this is AI-generated code; human review pending
@@ -112,7 +115,6 @@ class CollapseTreeTests(unittest.TestCase):
 class GtdbTreeCollapseTests(unittest.TestCase):
 
     def test_underscores_kept_and_names_round_trip(self):
-        # TODO: this is AI-generated code; human review pending
         fmt = NewickFormat()
         with fmt.open() as fh:
             fh.write("((RS_GCF_1:0.1,RS_GCF_2:0.3)'100.0:g__A':0.5,GB_GCA_3:0.4);")
@@ -130,3 +132,10 @@ class GtdbTreeCollapseTests(unittest.TestCase):
         back = skbio.TreeNode.read(str(fmt2), format='newick')
         self.assertEqual({t.name for t in back.tips()},
                          {lineage + 'g__Blautia_A', lineage + 'g__Other'})
+        # the kept internal label survives the round trip as well
+        out2 = gtdb_tree_collapse(fmt, taxonomy, 7)
+        fmt3 = NewickFormat()
+        with fmt3.open() as fh:
+            out2.write(fh, format='newick')
+        back = skbio.TreeNode.read(str(fmt3), format='newick')
+        self.assertEqual({n.name for n in back.non_tips()}, {'100.0:g__A'})

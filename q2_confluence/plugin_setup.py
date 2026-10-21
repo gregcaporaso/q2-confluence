@@ -64,10 +64,11 @@ plugin.methods.register_function(
                           'same level with taxa collapse.'},
     name='Collapse a reference tree to one tip per taxon',
     description=(
-        'Group the tips by their taxonomy at the level and replace each group '
-        'by its most recent common ancestor, whose branch length becomes its own '
-        'length plus the mean distance to the group\'s tips; a group of one tip '
-        'is renamed. The action fails if a tip is missing from the taxonomy, a '
+        'Group the tips by their taxonomy at the level and shear each group off '
+        'at its most recent common ancestor, which becomes the tip and keeps '
+        'its own branch length; a group of one tip is renamed; the other '
+        'internal node labels are kept. The action fails if a tip is missing '
+        'from the taxonomy, a '
         'taxon has no name at the level, or a group is not monophyletic. Run '
         'once per reference release and level; UniFrac tolerates tips absent '
         'from a table, so the same tree serves every table collapsed to that '

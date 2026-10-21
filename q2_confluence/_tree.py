@@ -6,7 +6,6 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import statistics
 from collections import defaultdict
 
 import pandas as pd
@@ -42,11 +41,14 @@ def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
     Every tip must be in `taxonomy`. Tips are grouped by their taxonomy
     collapsed to `level` (q2-taxa's rule, so the new tip names equal the
     feature IDs of a table collapsed to the same level). A group of one tip
-    is renamed; a larger group is replaced by its most recent common
-    ancestor, which must contain no other tips (the group is monophyletic),
-    with a branch length of that ancestor's own length plus the median
-    distance from it to the group's tips. Internal node names are cleared.
+    is renamed; a larger group is sheared off at its most recent common
+    ancestor, which must contain no other tips (the group is monophyletic)
+    and becomes the tip, keeping its own branch length. The other internal
+    node names (GTDB's bootstrap and taxon labels) are kept.
     """
+    # EVAN: thoughts on this validation here? Technically the interface takes
+    # care of it through our range settings, but it also doesn't seem to hurt
+    # there.
     if not 1 <= level <= GTDB_RANKS:
         raise ValueError(f'level must be between 1 and {GTDB_RANKS}, '
                          f'got {level}')
@@ -70,27 +72,21 @@ def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
         raise ValueError(f'{len(unnamed)} taxa have no name at level {level}, '
                          f'e.g. {unnamed[:3]}')
 
-    # Measure on the intact tree, then edit, so distances are not affected
-    # by earlier collapses.
+    # Find every group's ancestor before editing, on the intact topology.
     plan = []
     for name, nodes in groups.items():
         if len(nodes) == 1:
-            plan.append((nodes[0], name, 0.0))
+            plan.append((nodes[0], name))
             continue
         mrca = tree.lowest_common_ancestor(nodes)
         if mrca.count(tips=True) != len(nodes):
             raise ValueError(f'{name} is not monophyletic: its {len(nodes)} '
                              f'tips share an ancestor with other tips')
-        depth = statistics.median(n.accumulate_to_ancestor(mrca)
-                                  for n in nodes)
-        plan.append((mrca, name, depth))
-    for node, name, depth in plan:
+        plan.append((mrca, name))
+    for node, name in plan:
         node.children = []
         node.name = name
-        # The root has no branch length (None); it is the ancestor when a
-        # level leaves a single taxon.
-        node.length = depth if node.length is None else node.length + depth
-    for node in tree.non_tips(include_self=True):
-        node.name = None
+    # lowest_common_ancestor built skbio's node-lookup cache, which the
+    # direct edits above left stale.
     tree.clear_caches()
     return tree
