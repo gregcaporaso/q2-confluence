@@ -23,8 +23,8 @@ class PairedReportTests(TestPluginBase):
         # TODO: this is AI-generated code; human review pending
         super().setUp()
         collapse = self.plugin.methods['gtdb_tree_collapse']
-        self.tree, = collapse(ex._reference_tree_factory(),
-                              ex._reference_taxonomy_factory(), 6)
+        self.tree, _ = collapse(ex._reference_tree_factory(),
+                                ex._reference_taxonomy_factory(), 6)
         self.table, _, self.metadata = self.plugin.pipelines['integrate'](
             {'amplicon': ex._paired_amplicon_table_factory(),
              'metagenome': ex._paired_metagenome_table_factory()},

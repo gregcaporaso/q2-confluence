@@ -12,7 +12,7 @@ The workflow, in order (`qiime confluence <action> --help` for the details):
 
 | Action | Role | Status |
 |---|---|---|
-| `gtdb-tree-collapse` | A reference tree collapsed to one tip per taxon at a level, named like `taxa collapse` IDs; once per release and level | provisional, intended for q2-phylogeny |
+| `gtdb-tree-collapse` | A reference tree collapsed to one tip per taxon at a level, named like `taxa collapse` IDs, plus a log (`ImmutableMetadata` keyed by tip: original node name, genome count, genome IDs); once per release and level | provisional, intended for q2-phylogeny |
 | `summarize-inputs` | Which sample IDs the tables and metadata of the studies share | stays |
 | `merge-metadata` | Union or intersection of several studies' metadata | stays |
 | `relative-frequency` | Proportions from counts or from a relative table whose features were filtered; `integrate` applies it to every source | provisional, intended for q2-feature-table |

@@ -54,7 +54,7 @@ class CollapseTreeTests(unittest.TestCase):
         # -root----|          \-g__B
         #          |
         #           \-g__C
-        out = _collapse_tree(self.tree, self.taxonomy, 6)
+        out, log = _collapse_tree(self.tree, self.taxonomy, 6)
         tips = {t.name: t for t in out.tips()}
         self.assertEqual(set(tips), {'d__B;p__P;c__C;o__O;f__F;g__A',
                                      'd__B;p__P;c__C;o__O;f__F;g__B',
@@ -68,10 +68,24 @@ class CollapseTreeTests(unittest.TestCase):
         # the other internal labels are kept
         self.assertEqual({n.name for n in out.non_tips(include_self=True)},
                          {'90.0:f__F', 'root'})
+        # the log: one row per tip, keyed by the new name
+        log = log.to_dataframe()
+        self.assertEqual(list(log.index), sorted(tips))
+        self.assertEqual(log.index.name, 'feature-id')
+        self.assertEqual(list(log.columns),
+                         ['original-name', 'genomes', 'genome-ids'])
+        sheared = log.loc['d__B;p__P;c__C;o__O;f__F;g__A']
+        self.assertEqual(sheared['original-name'], '100.0:g__A')
+        self.assertEqual(sheared['genomes'], 2)
+        self.assertEqual(sheared['genome-ids'], 'g1,g2')
+        renamed = log.loc['d__B;p__P;c__C;o__O;f__F;g__B']
+        self.assertEqual(renamed['original-name'], 'g3')
+        self.assertEqual(renamed['genomes'], 1)
+        self.assertEqual(renamed['genome-ids'], 'g3')
 
     def test_species_is_a_rename(self):
         # TODO: this is AI-generated code; human review pending
-        out = _collapse_tree(self.tree, self.taxonomy, 7)
+        out, log = _collapse_tree(self.tree, self.taxonomy, 7)
         self.assertEqual(out.count(tips=True), 5)
         self.assertIn('d__B;p__P;c__C;o__O;f__F;g__A;s__A one',
                       {t.name for t in out.tips()})
@@ -81,13 +95,17 @@ class CollapseTreeTests(unittest.TestCase):
         #           /-f__F
         # -root----|
         #           \-f__G
-        out = _collapse_tree(self.tree, self.taxonomy, 5)
+        out, log = _collapse_tree(self.tree, self.taxonomy, 5)
         self.assertEqual({t.name for t in out.tips()},
                          {'d__B;p__P;c__C;o__O;f__F', 'd__B;p__P;c__C;o__O;f__G'})
         # a level that leaves one taxon collapses the root onto it
-        out = _collapse_tree(self.tree, self.taxonomy, 1)
+        out, log = _collapse_tree(self.tree, self.taxonomy, 1)
         self.assertTrue(out.is_tip())
         self.assertEqual(out.name, 'd__B')
+        log = log.to_dataframe()
+        self.assertEqual(log.loc['d__B', 'original-name'], 'root')
+        self.assertEqual(log.loc['d__B', 'genomes'], 5)
+        self.assertEqual(log.loc['d__B', 'genome-ids'], 'g1,g2,g3,g4,g5')
 
     def test_input_tree_unchanged(self):
         # TODO: this is AI-generated code; human review pending
@@ -145,7 +163,7 @@ class GtdbTreeCollapseTests(unittest.TestCase):
         taxonomy = pd.Series({'RS_GCF_1': lineage + 'g__Blautia_A;s__x',
                               'RS_GCF_2': lineage + 'g__Blautia_A;s__y',
                               'GB_GCA_3': lineage + 'g__Other;s__z'})
-        out = gtdb_tree_collapse(fmt, taxonomy, 6)
+        out, log = gtdb_tree_collapse(fmt, taxonomy, 6)
         self.assertEqual({t.name for t in out.tips()},
                          {lineage + 'g__Blautia_A', lineage + 'g__Other'})
         # written quoted, so q2-types' default reader keeps the underscores
@@ -156,7 +174,7 @@ class GtdbTreeCollapseTests(unittest.TestCase):
         self.assertEqual({t.name for t in back.tips()},
                          {lineage + 'g__Blautia_A', lineage + 'g__Other'})
         # the kept internal label survives the round trip as well
-        out2 = gtdb_tree_collapse(fmt, taxonomy, 7)
+        out2, _ = gtdb_tree_collapse(fmt, taxonomy, 7)
         fmt3 = NewickFormat()
         with fmt3.open() as fh:
             out2.write(fh, format='newick')

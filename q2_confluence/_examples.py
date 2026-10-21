@@ -59,7 +59,8 @@ def _gtdb_tree_collapse_genus(use):
     use.action(
         use.UsageAction('confluence', 'gtdb_tree_collapse'),
         use.UsageInputs(tree=tree, taxonomy=taxonomy, level=6),
-        use.UsageOutputNames(collapsed_tree='genus-tree'),
+        use.UsageOutputNames(collapsed_tree='genus-tree',
+                             collapse_log='genus-tree-collapse-log'),
     )
 
 
@@ -213,10 +214,11 @@ def _integrate_at_genus(use):
     tree = use.init_artifact('reference-tree', _reference_tree_factory)
     taxonomy = use.init_artifact('reference-taxonomy',
                                  _reference_taxonomy_factory)
-    genus_tree, = use.action(
+    genus_tree, _ = use.action(
         use.UsageAction('confluence', 'gtdb_tree_collapse'),
         use.UsageInputs(tree=tree, taxonomy=taxonomy, level=6),
-        use.UsageOutputNames(collapsed_tree='genus-tree'),
+        use.UsageOutputNames(collapsed_tree='genus-tree',
+                             collapse_log='genus-tree-collapse-log'),
     )
     amplicon = use.init_artifact('amplicon-table',
                                  _amplicon_table_three_asvs_factory)
@@ -306,10 +308,11 @@ def _paired_report_example(use):
     tree = use.init_artifact('reference-tree', _reference_tree_factory)
     taxonomy = use.init_artifact('reference-taxonomy',
                                  _reference_taxonomy_factory)
-    genus_tree, = use.action(
+    genus_tree, _ = use.action(
         use.UsageAction('confluence', 'gtdb_tree_collapse'),
         use.UsageInputs(tree=tree, taxonomy=taxonomy, level=6),
-        use.UsageOutputNames(collapsed_tree='genus-tree'),
+        use.UsageOutputNames(collapsed_tree='genus-tree',
+                             collapse_log='genus-tree-collapse-log'),
     )
     tables = use.construct_artifact_collection('tables', {
         'amplicon': use.init_artifact('amplicon-table',

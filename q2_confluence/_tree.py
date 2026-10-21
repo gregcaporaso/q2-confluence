@@ -8,7 +8,9 @@
 
 from collections import defaultdict
 
+import numpy as np
 import pandas as pd
+import qiime2
 import skbio
 from q2_types.tree import NewickFormat
 
@@ -19,7 +21,7 @@ GTDB_RANKS = 7
 
 
 def gtdb_tree_collapse(tree: NewickFormat, taxonomy: pd.Series,
-                       level: int) -> skbio.TreeNode:
+                       level: int) -> (skbio.TreeNode, qiime2.Metadata):
     """The registered action: read the Newick file with underscores kept.
 
     q2-types' default view converts unquoted underscores to spaces (Newick
@@ -33,7 +35,7 @@ def gtdb_tree_collapse(tree: NewickFormat, taxonomy: pd.Series,
 
 
 def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
-                   level: int) -> skbio.TreeNode:
+                   level: int) -> (skbio.TreeNode, qiime2.Metadata):
     """Collapse a reference tree to one tip per taxon at `level`.
 
     Every tip must be in `taxonomy`. Tips are grouped by their taxonomy
@@ -43,6 +45,10 @@ def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
     ancestor, which must contain no other tips (the group is monophyletic)
     and becomes the tip, keeping its own branch length. The other internal
     node names (GTDB's bootstrap and taxon labels) are kept.
+
+    The log has one row per output tip, keyed by its new name so it serves
+    as feature metadata for a table collapsed to the same level: the node's
+    original name, the number of genomes it stands for and their IDs.
     """
     if not 1 <= level <= GTDB_RANKS:
         raise ValueError(f'level must be between 1 and {GTDB_RANKS}, '
@@ -71,17 +77,23 @@ def _collapse_tree(tree: skbio.TreeNode, taxonomy: pd.Series,
     plan = []
     for name, nodes in groups.items():
         if len(nodes) == 1:
-            plan.append((nodes[0], name))
+            plan.append((nodes[0], name, nodes))
             continue
         mrca = tree.lowest_common_ancestor(nodes)
         if mrca.count(tips=True) != len(nodes):
             raise ValueError(f'{name} is not monophyletic: its {len(nodes)} '
                              f'tips share an ancestor with other tips')
-        plan.append((mrca, name))
-    for node, name in plan:
+        plan.append((mrca, name, nodes))
+    log = []
+    for node, name, nodes in plan:
+        log.append({'feature-id': name,
+                    'original-name': node.name if node.name else np.nan,
+                    'genomes': len(nodes),
+                    'genome-ids': ','.join(n.name for n in nodes)})
         node.children = []
         node.name = name
     # lowest_common_ancestor built skbio's node-lookup cache, which the
     # direct edits above left stale.
     tree.clear_caches()
-    return tree
+    log = pd.DataFrame(log).set_index('feature-id').sort_index()
+    return tree, qiime2.Metadata(log)

@@ -48,7 +48,8 @@ plugin.methods.register_function(
     function=gtdb_tree_collapse,
     inputs={'tree': Phylogeny[Rooted], 'taxonomy': FeatureData[Taxonomy]},
     parameters={'level': Int % Range(1, GTDB_RANKS, inclusive_end=True)},
-    outputs=[('collapsed_tree', Phylogeny[Rooted])],
+    outputs=[('collapsed_tree', Phylogeny[Rooted]),
+             ('collapse_log', ImmutableMetadata)],
     input_descriptions={
         'tree': 'A reference tree whose tips are keyed like the taxonomy, '
                 'e.g. the GTDB bac120 tree with genome accessions as tips.',
@@ -61,7 +62,13 @@ plugin.methods.register_function(
         'collapsed_tree': 'One tip per taxon at the level, named with the '
                           'taxonomy string collapsed to that level, so the tips '
                           'match the feature IDs of a table collapsed to the '
-                          'same level with taxa collapse.'},
+                          'same level with taxa collapse.',
+        'collapse_log': 'One row per tip of the collapsed tree, keyed by the '
+                        'tip name (so it serves as feature metadata for a '
+                        'table collapsed to the same level): original-name, '
+                        'the name the node had in the input tree; genomes, '
+                        'the number of genomes it stands for; genome-ids, '
+                        'their IDs, comma-separated.'},
     name='Collapse a reference tree to one tip per taxon',
     description=(
         'Group the tips by their taxonomy at the level and shear each group off '

@@ -27,8 +27,8 @@ class IntegrateTests(TestPluginBase):
         super().setUp()
         self.integrate = self.plugin.pipelines['integrate']
         collapse = self.plugin.methods['gtdb_tree_collapse']
-        self.genus_tree, = collapse(ex._reference_tree_factory(),
-                                    ex._reference_taxonomy_factory(), 6)
+        self.genus_tree, _ = collapse(ex._reference_tree_factory(),
+                                      ex._reference_taxonomy_factory(), 6)
         self.tables = {'amplicon': ex._amplicon_table_three_asvs_factory(),
                        'metagenome': ex._metagenome_relative_factory()}
         self.taxonomies = {'amplicon': ex._amplicon_taxonomy_factory(),
@@ -73,7 +73,7 @@ class IntegrateTests(TestPluginBase):
 
     def test_tree_at_another_level(self):
         # TODO: this is AI-generated code; human review pending
-        family_tree, = self.plugin.methods['gtdb_tree_collapse'](
+        family_tree, _ = self.plugin.methods['gtdb_tree_collapse'](
             ex._reference_tree_factory(), ex._reference_taxonomy_factory(), 5)
         with self.assertRaisesRegex(ValueError, 'not tips of the tree'):
             self.integrate(self.tables, self.taxonomies, family_tree, 6)
