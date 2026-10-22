@@ -27,7 +27,7 @@ Every action carries a usage example that the test suite executes.
 
 | Format | Role | Status |
 |---|---|---|
-| `GTDBNewickFormat` | A GTDB reference tree as released (`bac120_r232.tree`): `qiime tools import --type 'Phylogeny[Rooted]' --input-format GTDBNewickFormat` takes the file unchanged, and the transformer to the stock Newick view drops the quoted root label without a branch length (`'100:d__Bacteria'`) that UniFrac's parser (unifrac-binaries 1.5, run by `diversity beta-phylogenetic`) aborts on; nothing else in the tree changes | provisional, intended for q2-types or q2-phylogeny |
+| `GTDBNewickFormat` | A GTDB reference tree as released (`bac120_r232.tree`, `ar53_r232.tree`): `qiime tools import --type 'Phylogeny[Rooted]' --input-format GTDBNewickFormat` takes the file unchanged, and the transformer to the stock Newick view drops the quoted root label without a branch length (`'100:d__Bacteria'`) that UniFrac's parser (unifrac-binaries 1.5, run by `diversity beta-phylogenetic`) aborts on; nothing else in the tree changes | provisional, intended for q2-types or q2-phylogeny |
 
 Known limitations of the genome feature space, documented in the tutorial: only about half of GTDB r232's bacterial species representatives have a 16S in the SpeciesReps SSU reference, so an ASV whose genome has none can only land on a relative's genome at a lower identity threshold; and `vsearch cluster-features-closed-reference` keeps vsearch's first hit at or above the threshold (q2-vsearch does not expose `maxaccepts`), so among genomes with identical V4 regions the assignment is arbitrary.
 

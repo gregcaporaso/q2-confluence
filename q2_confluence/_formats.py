@@ -18,41 +18,44 @@ _ROOT_LABEL = re.compile(r"\)\s*(?:'[^']*'|[^()\[\]:,;'\s]+)\s*;\s*$")
 
 
 class GTDBNewickFormat(model.TextFileFormat):
-    """A GTDB reference tree as released (e.g. bac120_r232.tree).
+    """A GTDB reference tree as released: the bacterial bac120_r<release>.tree
+    or the archaeal ar53_r<release>.tree (both checked on r226 and r232).
 
     Newick with genome accessions as tips, bootstrap:taxon labels on
-    internal nodes, and a quoted root label without a branch length, which
-    UniFrac's parser (unifrac-binaries 1.5, run by diversity
-    beta-phylogenetic) cannot read. Importing through this format drops that
-    one label and changes nothing else; the GTDB file itself is never edited.
+    internal nodes, and a quoted root label without a branch length
+    ('100:d__Bacteria', '100:d__Archaea'), which UniFrac's parser
+    (unifrac-binaries 1.5, run by diversity beta-phylogenetic) cannot read.
+    The artifact imported through this format holds the tree without that
+    one label and otherwise as GTDB wrote it.
+
+    Validation always parses the whole file (2 s for the 9 MB bacterial
+    tree), whatever the level.
     """
 
     def _validate_(self, level):
-        # TODO: this is AI-generated code; human review pending
+        # TODO: this is AI-generated code; human review pending (the level
+        # distinction went on 2026-10-22: every level parses the whole file)
         with self.open() as fh:
-            text = fh.read() if level == 'max' else fh.read(1024)
+            text = fh.read()
         if not text.lstrip().startswith('('):
             raise model.ValidationError('not a Newick tree: it does not start '
                                         'with "("')
-        if level == 'max':
-            if not text.rstrip().endswith(';'):
-                raise model.ValidationError('not a Newick tree: it does not '
-                                            'end with ";"')
-            try:
-                skbio.TreeNode.read([text], format='newick',
-                                    convert_underscores=False)
-            except Exception as e:
-                raise model.ValidationError(f'not a Newick tree: {e}')
+        if not text.rstrip().endswith(';'):
+            raise model.ValidationError('not a Newick tree: it does not end '
+                                        'with ";"')
+        try:
+            skbio.TreeNode.read([text], format='newick',
+                                convert_underscores=False)
+        except Exception as e:
+            raise model.ValidationError(f'not a Newick tree: {e}')
 
 
 def _drop_root_label(text: str) -> str:
-    # TODO: this is AI-generated code; human review pending
     """The Newick text with a root label that has no branch length removed."""
     return _ROOT_LABEL.sub(');', text.rstrip()) + '\n'
 
 
 def _gtdb_newick_to_newick(ff: GTDBNewickFormat) -> NewickFormat:
-    # TODO: this is AI-generated code; human review pending
     result = NewickFormat()
     with ff.open() as src, result.open() as dst:
         dst.write(_drop_root_label(src.read()))

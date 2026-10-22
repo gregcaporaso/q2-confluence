@@ -21,6 +21,10 @@ from q2_confluence._formats import GTDBNewickFormat, _drop_root_label
 # branch length, a space inside a quoted label, a bare bootstrap.
 GTDB = ("((RS_GCF_1:0.1,RS_GCF_2:0.3)'100:f__A; g__B':0.5,GB_GCA_3:0.4)"
         "'100:d__Bacteria';\n")
+# The archaeal tree (ar53_r226.tree, ar53_r232.tree) has the same shape; its
+# root label is '100:d__Archaea' (checked on both files on 2026-10-22).
+ARCHAEA = ("((RS_GCF_4:0.1,GB_GCA_5:0.3)'99.0:p__Halobacteriota':0.5,"
+           "GB_GCA_6:0.4)'100:d__Archaea';\n")
 
 
 class DropRootLabelTests(unittest.TestCase):
@@ -45,6 +49,13 @@ class DropRootLabelTests(unittest.TestCase):
         # TODO: this is AI-generated code; human review pending
         self.assertEqual(_drop_root_label("(a:0.1,b:0.2);"), "(a:0.1,b:0.2);\n")
 
+    def test_archaeal_root_label(self):
+        # TODO: this is AI-generated code; human review pending
+        self.assertEqual(
+            _drop_root_label(ARCHAEA),
+            "((RS_GCF_4:0.1,GB_GCA_5:0.3)'99.0:p__Halobacteriota':0.5,"
+            "GB_GCA_6:0.4);\n")
+
 
 class GTDBNewickFormatTests(unittest.TestCase):
 
@@ -61,18 +72,20 @@ class GTDBNewickFormatTests(unittest.TestCase):
 
     def test_validates(self):
         # TODO: this is AI-generated code; human review pending
-        GTDBNewickFormat(self.path, mode='r').validate('max')
+        for level in ['min', 'max']:
+            GTDBNewickFormat(self.path, mode='r').validate(level)
 
     def test_rejects_non_newick(self):
         # TODO: this is AI-generated code; human review pending
-        with open(self.path, 'w') as fh:
-            fh.write('Feature ID\tTaxon\n')
-        with self.assertRaisesRegex(ValidationError, 'does not start'):
-            GTDBNewickFormat(self.path, mode='r').validate('min')
-        with open(self.path, 'w') as fh:
-            fh.write('(a:0.1,b:0.2')
-        with self.assertRaisesRegex(ValidationError, 'does not end'):
-            GTDBNewickFormat(self.path, mode='r').validate('max')
+        # every level parses the whole file, so min rejects what max rejects
+        for content, message in [('Feature ID\tTaxon\n', 'does not start'),
+                                 ('(a:0.1,b:0.2', 'does not end'),
+                                 ('(a:0.1,b:0.2));', 'not a Newick tree')]:
+            with open(self.path, 'w') as fh:
+                fh.write(content)
+            for level in ['min', 'max']:
+                with self.assertRaisesRegex(ValidationError, message):
+                    GTDBNewickFormat(self.path, mode='r').validate(level)
 
     def test_import_drops_the_root_label_only(self):
         # TODO: this is AI-generated code; human review pending
@@ -89,6 +102,16 @@ class GTDBNewickFormatTests(unittest.TestCase):
         self.assertIsNone(parsed.name)   # the root label is gone
         self.assertEqual({n.name for n in parsed.non_tips()},
                          {'100:f__A; g__B'})   # the internal label stays
+
+    def test_import_archaeal_tree(self):
+        # TODO: this is AI-generated code; human review pending
+        with open(self.path, 'w') as fh:
+            fh.write(ARCHAEA)
+        tree = Artifact.import_data('Phylogeny[Rooted]', self.path,
+                                    GTDBNewickFormat)
+        parsed = tree.view(skbio.TreeNode)
+        self.assertIsNone(parsed.name)
+        self.assertEqual(parsed.count(tips=True), 3)
 
 
 if __name__ == '__main__':
