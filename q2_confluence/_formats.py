@@ -33,8 +33,6 @@ class GTDBNewickFormat(model.TextFileFormat):
     """
 
     def _validate_(self, level):
-        # TODO: this is AI-generated code; human review pending (the level
-        # distinction went on 2026-10-22: every level parses the whole file)
         with self.open() as fh:
             text = fh.read()
         if not text.lstrip().startswith('('):
