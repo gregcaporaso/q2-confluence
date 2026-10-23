@@ -110,8 +110,7 @@ plugin.methods.register_function(
         'proportions: each sample is divided by its total, so a relative '
         'table from which features were dropped sums to 1 again. integrate '
         'uses it on every source. Provisional: expected to be folded into '
-        'feature-table relative-frequency.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+        'feature-table relative-frequency.'),
     deprecated=True,
     examples={'Renormalize after dropping a feature': _relative_frequency_example},
 )
@@ -148,12 +147,13 @@ plugin.pipelines.register_function(
     input_descriptions={
         'tables': 'One table per source, counts or proportions, keyed by a '
                   'label; every table is keyed like the tree\'s tips (GTDB '
-                  'genome accessions, from closed-reference clustering on the '
-                  'amplicon side and from sylph profile-to-tables on the '
-                  'metagenome side). One table alone works too.',
+                  'genome accessions, from closed-reference clustering on '
+                  'amplicon data and from sylph profile-to-tables on '
+                  'metagenome data). One table alone works too, to prepare '
+                  'for manual integration.',
         'tree': 'The reference tree as imported (the GTDB tree through '
                 'GTDBNewickFormat); features that are not its tips are '
-                'dropped from every source.',
+                'dropped from every table.',
         'metadata': 'The studies\' sample metadata, keyed like the tables '
                     '(optional, any subset of the keys; a study file shared '
                     'by two sources is given under each key). Each study\'s '
@@ -178,8 +178,7 @@ plugin.pipelines.register_function(
         'metadata. The taxonomy of the merged features is the reference\'s '
         'own (GTDB\'s taxonomy file imported as FeatureData[Taxonomy]), which '
         'any downstream action takes directly. Samples with the same ID in '
-        'two sources are a pair, which paired-report uses.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+        'two sources are considered a pair in paired-report.'),
     examples={'Amplicon and metagenome in the genome space':
               _integrate_genomes},
 )

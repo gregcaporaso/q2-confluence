@@ -20,8 +20,6 @@ DROPPED_SHARE_WARNING = 0.1
 
 
 def integrate(ctx, tables, tree, metadata=None):
-    # TODO: this is AI-generated code; human review pending (rewritten 2026-10-23:
-    # no taxonomies, tree filter with counts, stock metadata merge)
     """Merge every table in one feature space: the tips of `tree`.
 
     `tables` (counts or proportions, keyed by the tree's tips, e.g. GTDB
@@ -99,7 +97,6 @@ def integrate(ctx, tables, tree, metadata=None):
 
 
 def _suffixed(study, key):
-    # TODO: this is AI-generated code; human review pending
     """The study's metadata with every sample ID suffixed by `-<key>`."""
     df = study.to_dataframe()
     df.index = pd.Index([f'{i}-{key}' for i in df.index], name='sample-id')
