@@ -21,7 +21,7 @@ DROPPED_SHARE_WARNING = 0.1
 
 def integrate(ctx, tables, tree, metadata=None):
     # TODO: this is AI-generated code; human review pending (changed after
-    # review on 2026-10-23: study-id column)
+    # review on 2026-10-23: study-id column, metadata keys checked first)
     """Merge every table in one feature space: the tips of `tree`.
 
     `tables` (counts or proportions, keyed by the tree's tips, e.g. GTDB
@@ -39,6 +39,12 @@ def integrate(ctx, tables, tree, metadata=None):
     source that loses more than DROPPED_SHARE_WARNING of its features
     raises a visible warning; one that loses every feature is an error.
     """
+    if metadata:
+        # a usage error should fail before any work is done
+        unknown = sorted(set(metadata.keys()) - set(tables.keys()))
+        if unknown:
+            raise ValueError(f'metadata keys {unknown} are not table keys; '
+                             'key each study\'s metadata like its table')
     filter_table = ctx.get_action('phylogeny', 'filter_table')
     relative_frequency = ctx.get_action('confluence', 'relative_frequency')
     rename_ids = ctx.get_action('feature_table', 'rename_ids')
@@ -82,10 +88,6 @@ def integrate(ctx, tables, tree, metadata=None):
 
     md = pd.DataFrame(rows).set_index('sample-id')
     if metadata:
-        unknown = sorted(set(metadata.keys()) - set(tables.keys()))
-        if unknown:
-            raise ValueError(f'metadata keys {unknown} are not table keys; '
-                             'key each study\'s metadata like its table')
         studies = [_suffixed(metadata[key].view(qiime2.Metadata), key)
                    for key in metadata.keys()]
         union = studies[0]

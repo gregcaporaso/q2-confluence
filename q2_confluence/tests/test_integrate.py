@@ -70,6 +70,18 @@ class IntegrateTests(TestPluginBase):
             self.integrate(self.tables, self.tree,
                            metadata={'study': self.metadata['amplicon']})
 
+    def test_metadata_keys_checked_before_the_work(self):
+        # TODO: this is AI-generated code; human review pending
+        # the key error comes first, before the tree filter, which this
+        # table (unprefixed accessions) would fail as well
+        table = biom.Table(np.array([[0.6, 0.1], [0.4, 0.9]]),
+                           ['GCF_1', 'GCF_2'], ['sample-2', 'sample-3'])
+        unprefixed = qiime2.Artifact.import_data(
+            'FeatureTable[RelativeFrequency]', table)
+        with self.assertRaisesRegex(ValueError, 'metadata keys'):
+            self.integrate({'metagenome': unprefixed}, self.tree,
+                           metadata={'study': self.metadata['amplicon']})
+
     def test_without_metadata(self):
         # TODO: this is AI-generated code; human review pending
         _, md = self.integrate(self.tables, self.tree)
