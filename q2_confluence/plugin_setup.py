@@ -33,7 +33,7 @@ plugin = Plugin(
     version=__version__,
     website="https://github.com/gregcaporaso/q2-confluence",
     package="q2_confluence",
-    description=("Integrate 16S rRNA amplicon and shotgun metagenome taxonomic "
+    description=("Integrate 16S rRNA amplicon and metagenome taxonomic "
                  "profiles in the feature space of one GTDB release's genomes: "
                  "filter each profile to the reference tree, merge the studies "
                  "into one feature table with provenance, and compare paired "
