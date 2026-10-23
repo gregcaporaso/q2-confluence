@@ -190,7 +190,8 @@ plugin.methods.register_function(
     parameters={'metadata': Metadata},
     outputs=[('feature_summary', ImmutableMetadata)],
     input_descriptions={
-        'table': 'The integrated table of the paired samples.',
+        'table': 'The integrated table of the paired samples, from exactly '
+                 'two studies.',
         'importance': 'Feature importances from the random forest.'},
     parameter_descriptions={
         'metadata': 'The integrated metadata (columns study-id and '
@@ -198,13 +199,14 @@ plugin.methods.register_function(
     output_descriptions={
         'feature_summary': 'One row per feature: importance and rank, '
                            'mean-<study-id> and prevalence-<study-id> for '
-                           'every study, log2-<second>-over-<first>, '
+                           'each of the two studies, log2-<second>-over-<first>, '
                            'and direction (shared or <study-id>-only).'},
     name='Summarize the features that separate the sources',
     description=(
-        'Per feature: random-forest importance and rank, each source\'s mean '
-        'relative abundance and prevalence, the log2 ratio between the first '
-        'two sources, and whether the feature is seen by one source only. '
+        'Per feature: random-forest importance and rank, each study\'s mean '
+        'relative abundance and prevalence, the log2 ratio of the second '
+        'study over the first, and whether the feature is seen by one study '
+        'only; the table must hold exactly two studies. '
         'Metadata rather than a visualization, so it can be tabulated, '
         'filtered with where clauses, or joined to a taxonomy. Hidden: '
         'paired-report runs it; --show-hidden-actions lists it.'
@@ -227,7 +229,9 @@ plugin.pipelines.register_function(
              ('feature_importance', FeatureData[Importance]),
              ('feature_summary', ImmutableMetadata)],
     input_descriptions={
-        'table': 'The relative table from integrate.',
+        'table': 'The integrated table from integrate; its samples must belong '
+                 'to exactly two studies (feature-table filter-samples '
+                 'keeps two).',
         'tree': 'The reference tree integrate was run with.',
         'metadata': 'The metadata from integrate (study-id and '
                     'original-sample-id).',
@@ -250,7 +254,7 @@ plugin.pipelines.register_function(
         'feature_summary': 'The per-feature summary as metadata.'},
     name='Compare the sources on the samples every source profiled',
     description=(
-        'Keeps the samples whose original ID is present in every source and '
+        'Keeps the samples whose original ID is present in both studies and '
         'computes Bray-Curtis, Jaccard, unweighted and weighted UniFrac on the '
         'proportions as they are (no rarefaction), with PERMANOVA by study-id '
         'and a PCoA scatter plot for each; then a random forest classifying '

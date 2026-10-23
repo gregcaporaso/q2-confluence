@@ -24,28 +24,30 @@ _METRICS = {'braycurtis': ('Bray-Curtis', False),
 def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
                   cv=10, n_estimators=500, random_state=None, n_jobs=1):
     # TODO: this is AI-generated code; human review pending
-    """How far apart are the sources, on the samples every source profiled?
+    """How far apart are two studies, on the samples both profiled?
 
     `table` and `metadata` come from integrate (metadata columns
     original-sample-id and study-id), as does `taxonomy`, which when
-    given is tabulated beside the per-feature summary. Samples whose
-    original ID is present in every study are kept; the rest are
-    dropped. Distances are computed on the proportions as they are: no
-    rarefaction, no counts.
+    given is tabulated beside the per-feature summary. The table's
+    samples must belong to exactly two studies; samples whose original
+    ID is present in both are kept, the rest are dropped. Distances are
+    computed on the proportions as they are: no rarefaction, no counts.
     """
     full_md = metadata.view(qiime2.Metadata)
     md = full_md.to_dataframe()
+    md = md[md.index.isin(table.view(biom.Table).ids())]
     for col in ('original-sample-id', 'study-id'):
         if col not in md.columns:
             raise ValueError(f'metadata has no {col!r} column; use the metadata '
                              'written by integrate')
     sources = sorted(md['study-id'].unique())
+    _two_studies(sources)
     by_source = [set(md.loc[md['study-id'] == s, 'original-sample-id'])
                  for s in sources]
     paired = set.intersection(*by_source)
     if len(paired) < 2:
-        raise ValueError(f'{len(paired)} original sample IDs are present in every '
-                         f'source ({sources}); at least 2 are needed')
+        raise ValueError(f'{len(paired)} original sample IDs are present in both '
+                         f'studies ({sources}); at least 2 are needed')
     kept = md[md['original-sample-id'].isin(paired)]
     kept_md = full_md.filter_ids(set(kept.index))   # keeps the artifact's provenance
     source_col = kept_md.get_column('study-id')
@@ -105,13 +107,14 @@ def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
 def _summarize_paired_features(table: biom.Table, importance: pd.DataFrame,
                                metadata: qiime2.Metadata) -> qiime2.Metadata:
     # TODO: this is AI-generated code; human review pending
-    """Per feature: importance and rank, each source's mean relative
-    abundance and prevalence, the log2 ratio of the first two sources, and
-    whether the feature is seen by one source only."""
-    md = metadata.to_dataframe()
-    source = md['study-id']
-    sources = sorted(source.unique())
+    """Per feature: importance and rank, each study's mean relative
+    abundance and prevalence, the log2 ratio of the second study over the
+    first (alphabetically), and whether the feature is seen by one study
+    only. The table's samples must belong to exactly two studies."""
     df = table.norm(axis='sample', inplace=False).to_dataframe(dense=True)
+    source = metadata.to_dataframe()['study-id'].reindex(df.columns)
+    sources = sorted(source.dropna().unique())
+    _two_studies(sources)
     out = pd.DataFrame(index=df.index)
     out.index.name = 'feature-id'
     out['importance'] = importance.reindex(df.index).iloc[:, 0].fillna(0.0)
@@ -120,12 +123,19 @@ def _summarize_paired_features(table: biom.Table, importance: pd.DataFrame,
         cols = [c for c in df.columns if source.get(c) == s]
         out[f'mean-{s}'] = df[cols].mean(axis=1)
         out[f'prevalence-{s}'] = (df[cols] > 0).sum(axis=1).astype(int)
-    a, b = sources[0], sources[1]
+    a, b = sources
     out[f'log2-{b}-over-{a}'] = np.log2((out[f'mean-{b}'] + EPS)
                                         / (out[f'mean-{a}'] + EPS))
-    only = {s: (out[[f'prevalence-{t}' for t in sources if t != s]] == 0).all(axis=1)
-            & (out[f'prevalence-{s}'] > 0) for s in sources}
+    seen_a, seen_b = out[f'prevalence-{a}'] > 0, out[f'prevalence-{b}'] > 0
     out['direction'] = 'shared'
-    for s in sources:
-        out.loc[only[s], 'direction'] = f'{s}-only'
+    out.loc[seen_a & ~seen_b, 'direction'] = f'{a}-only'
+    out.loc[seen_b & ~seen_a, 'direction'] = f'{b}-only'
     return qiime2.Metadata(out.sort_values('rank'))
+
+
+def _two_studies(sources):
+    # TODO: this is AI-generated code; human review pending
+    if len(sources) != 2:
+        raise ValueError(f'{len(sources)} studies among the table\'s samples '
+                         f'({sources}); exactly two are compared. Filter to '
+                         'two with feature-table filter-samples.')

@@ -119,6 +119,24 @@ class PairedReportTests(TestPluginBase):
                 self.table, self.tree, metadata, permutations=99,
                 cv=3, n_estimators=50)
 
+    def test_three_studies_rejected(self):
+        # TODO: this is AI-generated code; human review pending
+        md = self.metadata.view(qiime2.Metadata).to_dataframe()
+        md.loc['sample-1-metagenome', 'study-id'] = 'third'
+        metadata = qiime2.Artifact.import_data('ImmutableMetadata',
+                                               qiime2.Metadata(md))
+        with self.assertRaisesRegex(ValueError, '3 studies .* exactly two'):
+            self.plugin.pipelines['paired_report'](
+                self.table, self.tree, metadata, permutations=99,
+                cv=3, n_estimators=50)
+        md = ex._paired_integrated_metadata_factory().view(
+            qiime2.Metadata).to_dataframe()
+        md.loc['sample-1-metagenome', 'study-id'] = 'third'
+        with self.assertRaisesRegex(ValueError, '3 studies .* exactly two'):
+            self.plugin.methods['_summarize_paired_features'](
+                ex._paired_relative_table_factory(),
+                ex._paired_importance_factory(), qiime2.Metadata(md))
+
     def test_wrong_metadata(self):
         # TODO: this is AI-generated code; human review pending
         md = ex._paired_metadata_factory()
