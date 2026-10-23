@@ -145,20 +145,6 @@ def _summarize_inputs_two_studies(use):
     )
 
 
-def _merge_metadata_union(use):
-    # TODO: this is AI-generated code; human review pending
-    amplicon_md = use.init_artifact('amplicon-metadata', _amplicon_metadata_factory)
-    metagenome_md = use.init_artifact('metagenome-metadata',
-                                      _metagenome_metadata_factory)
-    metadata = use.construct_artifact_collection(
-        'metadata', {'amplicon': amplicon_md, 'metagenome': metagenome_md})
-    use.action(
-        use.UsageAction('confluence', 'merge_metadata'),
-        use.UsageInputs(metadata=metadata, how='union'),
-        use.UsageOutputNames(merged_metadata='merged-metadata'),
-    )
-
-
 def _taxonomy_factory(mapping):
     # TODO: this is AI-generated code; human review pending
     df = pd.DataFrame({'Taxon': pd.Series(mapping)})
@@ -195,8 +181,6 @@ def _metagenome_genome_table_factory():
 def _integrate_genomes(use):
     # TODO: this is AI-generated code; human review pending
     tree = use.init_artifact('reference-tree', _reference_tree_factory)
-    taxonomy = use.init_artifact('reference-taxonomy',
-                                 _reference_taxonomy_factory)
     amplicon = use.init_artifact('amplicon-genome-table',
                                  _amplicon_genome_table_factory)
     metagenome = use.init_artifact('metagenome-genome-table',
@@ -206,16 +190,12 @@ def _integrate_genomes(use):
                                       _metagenome_metadata_factory)
     tables = use.construct_artifact_collection(
         'tables', {'amplicon': amplicon, 'metagenome': metagenome})
-    taxonomies = use.construct_artifact_collection(
-        'taxonomies', {'amplicon': taxonomy, 'metagenome': taxonomy})
     metadata = use.construct_artifact_collection(
         'metadata', {'amplicon': amplicon_md, 'metagenome': metagenome_md})
     use.action(
         use.UsageAction('confluence', 'integrate'),
-        use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=tree,
-                        metadata=metadata),
+        use.UsageInputs(tables=tables, tree=tree, metadata=metadata),
         use.UsageOutputNames(relative_table='genome-relative-table',
-                             taxonomy='genome-taxonomy',
                              integrated_metadata='genome-metadata'),
     )
 
@@ -270,22 +250,20 @@ def _paired_report_example(use):
                                       _paired_amplicon_table_factory),
         'metagenome': use.init_artifact('metagenome-genome-table',
                                         _paired_metagenome_table_factory)})
-    taxonomies = use.construct_artifact_collection(
-        'taxonomies', {'amplicon': taxonomy, 'metagenome': taxonomy})
-    metadata = use.construct_artifact_collection('metadata', {
-        'study': use.init_artifact('study-metadata', _paired_metadata_factory)})
-    relative_table, genome_taxonomy, merged_metadata = use.action(
+    study = use.init_artifact('study-metadata', _paired_metadata_factory)
+    # one study profiled twice: its metadata goes in under both keys
+    metadata = use.construct_artifact_collection(
+        'metadata', {'amplicon': study, 'metagenome': study})
+    relative_table, merged_metadata = use.action(
         use.UsageAction('confluence', 'integrate'),
-        use.UsageInputs(tables=tables, taxonomies=taxonomies, tree=tree,
-                        metadata=metadata),
+        use.UsageInputs(tables=tables, tree=tree, metadata=metadata),
         use.UsageOutputNames(relative_table='genome-relative-table',
-                             taxonomy='genome-taxonomy',
                              integrated_metadata='genome-metadata'),
     )
     use.action(
         use.UsageAction('confluence', 'paired_report'),
         use.UsageInputs(table=relative_table, tree=tree,
-                        metadata=merged_metadata, taxonomy=genome_taxonomy,
+                        metadata=merged_metadata, taxonomy=taxonomy,
                         permutations=99, cv=3, n_estimators=50,
                         random_state=1),
         use.UsageOutputNames(report='paired-report',

@@ -24,12 +24,14 @@ class PairedReportTests(TestPluginBase):
         super().setUp()
         # the genome space: the reference tree as it is, no level
         self.tree = ex._reference_tree_factory()
-        taxonomy = ex._reference_taxonomy_factory()
-        self.table, self.taxonomy, self.metadata = self.plugin.pipelines['integrate'](
+        # the reference taxonomy is used as it is: integrate no longer
+        # produces one, and the report takes any taxonomy covering the table
+        self.taxonomy = ex._reference_taxonomy_factory()
+        self.table, self.metadata = self.plugin.pipelines['integrate'](
             {'amplicon': ex._paired_amplicon_table_factory(),
              'metagenome': ex._paired_metagenome_table_factory()},
-            {'amplicon': taxonomy, 'metagenome': taxonomy},
-            self.tree, metadata={'study': ex._paired_metadata_factory()})
+            self.tree, metadata={'amplicon': ex._paired_metadata_factory(),
+                                 'metagenome': ex._paired_metadata_factory()})
 
     def test_report(self):
         # TODO: this is AI-generated code; human review pending

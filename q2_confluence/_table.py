@@ -10,7 +10,6 @@ import biom
 
 
 def relative_frequency(table: biom.Table) -> biom.Table:
-    # TODO: this is AI-generated code; human review pending
     """Divide every sample by its total, as feature-table relative-frequency
     does, but from counts or from proportions: a relative table from which
     features were dropped sums to 1 again. An empty sample stays empty."""

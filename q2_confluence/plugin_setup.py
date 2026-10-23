@@ -6,8 +6,8 @@
 # The full license is in the file LICENSE, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from qiime2.plugin import (Choices, Collection, Int, Metadata, Plugin, Range,
-                           Str, Visualization)
+from qiime2.plugin import (Collection, Int, Metadata, Plugin, Range,
+                           Visualization)
 from q2_types.feature_data import FeatureData, Importance, Taxonomy
 from q2_types.feature_table import FeatureTable, Frequency, RelativeFrequency
 from q2_types.distance_matrix import DistanceMatrix
@@ -18,14 +18,12 @@ from q2_confluence import __version__
 from q2_confluence._examples import (_relative_frequency_example,
                                      _gtdb_tree_collapse_genus,
                                      _integrate_genomes,
-                                     _merge_metadata_union,
                                      _paired_report_example,
                                      _summarize_paired_features_example,
                                      _summarize_inputs_two_studies)
 from q2_confluence._formats import GTDBNewickFormat, _gtdb_newick_to_newick
 from q2_confluence._inputs import summarize_inputs
 from q2_confluence._integrate import integrate
-from q2_confluence._metadata import merge_metadata
 from q2_confluence._report import paired_report, summarize_paired_features
 from q2_confluence._table import relative_frequency
 from q2_confluence._tree import GTDB_RANKS, gtdb_tree_collapse
@@ -139,67 +137,48 @@ plugin.visualizers.register_function(
     examples={'Two studies': _summarize_inputs_two_studies},
 )
 
-plugin.methods.register_function(
-    function=merge_metadata,
-    inputs={'metadata': Collection[ImmutableMetadata]},
-    parameters={'how': Str % Choices(['union', 'intersection'])},
-    outputs=[('merged_metadata', ImmutableMetadata)],
-    input_descriptions={
-        'metadata': 'The studies\' sample metadata, keyed by a label.'},
-    parameter_descriptions={
-        'how': 'union keeps every sample ID in any input; intersection keeps '
-               'only the IDs present in every input (an error if there are '
-               'none).'},
-    output_descriptions={'merged_metadata': 'One metadata table over the '
-                                            'chosen IDs and every column.'},
-    name='Merge the metadata of several studies',
-    description=(
-        'Outer or inner join on sample ID over any number of metadata inputs. '
-        'Columns with the same name are combined; a sample with two different '
-        'values in such a column is an error. Unlike metadata merge, this takes '
-        'a collection and offers the union.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
-    examples={'Union of two studies': _merge_metadata_union},
-)
-
 plugin.pipelines.register_function(
     function=integrate,
     inputs={'tables': Collection[FeatureTable[Frequency | RelativeFrequency]],
-            'taxonomies': Collection[FeatureData[Taxonomy]],
             'tree': Phylogeny[Rooted],
             'metadata': Collection[ImmutableMetadata]},
     parameters={},
     outputs=[('relative_table', FeatureTable[RelativeFrequency]),
-             ('taxonomy', FeatureData[Taxonomy]),
              ('integrated_metadata', ImmutableMetadata)],
     input_descriptions={
         'tables': 'One table per source, counts or proportions, keyed by a '
-                  'label; every table is keyed by the tree\'s tips (GTDB '
+                  'label; every table is keyed like the tree\'s tips (GTDB '
                   'genome accessions, from closed-reference clustering on the '
                   'amplicon side and from sylph profile-to-tables on the '
-                  'metagenome side).',
-        'taxonomies': 'The taxonomy of each table\'s features, same keys, all '
-                      'from the same reference release.',
+                  'metagenome side). One table alone works too.',
         'tree': 'The reference tree as imported (the GTDB tree through '
-                'GTDBNewickFormat).',
-        'metadata': 'The studies\' sample metadata, keyed by a label '
-                    '(optional).'},
+                'GTDBNewickFormat); features that are not its tips are '
+                'dropped from every source.',
+        'metadata': 'The studies\' sample metadata, keyed like the tables '
+                    '(optional, any subset of the keys; a study file shared '
+                    'by two sources is given under each key). Each study\'s '
+                    'IDs are suffixed with its key, the studies are merged '
+                    'with metadata merge and joined to the output metadata.'},
     parameter_descriptions={},
     output_descriptions={
-        'relative_table': 'Every source as proportions, merged; sample IDs '
-                          'are <id>-<key>.',
-        'taxonomy': 'The input taxonomies restricted to the merged features '
-                    '(the first source\'s string when two differ).',
-        'integrated_metadata': 'One row per merged sample: original-sample-id, '
-                    'profile-type (the key), and the union of the studies\' '
-                    'metadata.'},
+        'relative_table': 'Every source as proportions over the features kept, '
+                          'merged; sample IDs are <id>-<key>.',
+        'integrated_metadata': 'One row per merged sample: '
+                               'original-sample-id, profile-type (the key), '
+                               'the source\'s features-before and '
+                               'features-after the tree filter and their '
+                               'quotient features-kept-share, and the columns '
+                               'of the sample\'s study metadata.'},
     name='Integrate profiles in the feature space of the reference genomes',
     description=(
-        'For each source: renormalize to proportions and suffix the sample '
-        'IDs with the key. Merge, check every feature is a tip of the tree, '
-        'take the taxonomy from the inputs, and build the metadata. Samples '
-        'with the same ID in two sources are a pair, which paired-report '
-        'uses.'
+        'For each source: drop the features that are not tips of the tree '
+        '(phylogeny filter-table; counted in the metadata, with a warning '
+        'when more than a tenth goes), renormalize to proportions and suffix '
+        'the sample IDs with the key. Merge the sources and build the '
+        'metadata. The taxonomy of the merged features is the reference\'s '
+        'own (GTDB\'s taxonomy file imported as FeatureData[Taxonomy]), which '
+        'any downstream action takes directly. Samples with the same ID in '
+        'two sources are a pair, which paired-report uses.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     examples={'Amplicon and metagenome in the genome space':
               _integrate_genomes},
