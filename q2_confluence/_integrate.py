@@ -26,6 +26,10 @@ def integrate(ctx, tables, taxonomies, tree, metadata=None):
     (`profile-type`), joined to the union of the studies' metadata when
     given.
     """
+    # REVIEW COMMENT: the need to iterate explicitly over keys may have been
+    # fixed in 2026.10. We'll install a 2026.10 environment and test doing this
+    # without .keys() (I think that's a workaround you had from an earlier
+    # issue we ran into with this).
     keys = list(tables.keys())   # a ResultCollection: iterate explicitly
     if set(keys) != set(taxonomies.keys()):
         raise ValueError('tables and taxonomies must have the same keys: '
@@ -34,6 +38,7 @@ def integrate(ctx, tables, taxonomies, tree, metadata=None):
     rename_ids = ctx.get_action('feature_table', 'rename_ids')
     merge = ctx.get_action('feature_table', 'merge')
     merge_taxa = ctx.get_action('feature_table', 'merge_taxa')
+    # REVIEW COMMENT: why do we need our own merge metadata?
     merge_metadata = ctx.get_action('confluence', 'merge_metadata')
 
     relatives, rows = [], []
@@ -85,8 +90,10 @@ def _restrict_taxonomy(taxonomy, table):
 def _check_tips(table, tree):
     # TODO: this is AI-generated code; human review pending
     newick = tree.view(NewickFormat)
+    # Read like gtdb_tree_collapse, with underscores kept: the table's IDs
+    # are the tips' raw names, as UniFrac's own parser also reads them.
     t = skbio.TreeNode.read(str(newick), format='newick',
-                            convert_underscores=False, verify=False)
+                            convert_underscores=False)
     tips = {n.name for n in t.tips()}
     missing = [str(i) for i in table.view(biom.Table).ids(axis='observation')
                if i not in tips]
