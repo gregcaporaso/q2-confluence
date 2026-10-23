@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 import qiime2
 import skbio
-from q2_types.tree import NewickFormat
 
 from ._taxonomy import _collapsed_name, _is_named
 
@@ -26,17 +25,14 @@ from ._taxonomy import _collapsed_name, _is_named
 GTDB_RANKS = 7
 
 
-def gtdb_tree_collapse(tree: NewickFormat, taxonomy: pd.Series,
+def gtdb_tree_collapse(tree: skbio.TreeNode, taxonomy: pd.Series,
                        level: int) -> (skbio.TreeNode, qiime2.Metadata):
-    """The registered action: read the Newick file with underscores kept.
-
-    q2-types' default view converts unquoted underscores to spaces (Newick
-    convention), which would turn GTDB tips such as RS_GCF_000006945.2 into
-    names the taxonomy does not have. The collapsed names are written quoted,
-    so they survive the default reader downstream.
-    """
-    tree = skbio.TreeNode.read(str(tree), format='newick',
-                               convert_underscores=False)
+    # TODO: this is AI-generated code; human review pending (takes the
+    # skbio.TreeNode view since 2026-10-23; the function had passed)
+    """The registered action. The tree's tip names must be the taxonomy's
+    IDs as written: a GTDB tree imported through GTDBNewickFormat has its
+    tips quoted, so the view keeps their underscores. The collapsed names
+    are written quoted too, so they survive every reader downstream."""
     return _collapse_tree(tree, taxonomy, level)
 
 

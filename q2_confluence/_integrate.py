@@ -10,7 +10,6 @@ import biom
 import pandas as pd
 import qiime2
 import skbio
-from q2_types.tree import NewickFormat
 
 
 def integrate(ctx, tables, taxonomies, tree, metadata=None):
@@ -26,23 +25,43 @@ def integrate(ctx, tables, taxonomies, tree, metadata=None):
     (`profile-type`), joined to the union of the studies' metadata when
     given.
     """
+    # REVIEW COMMENT: confirm that this will work on a single table as well
+    # with a unit test if not done already. the idea is that this could then
+    # be used to prepare a single table for an integrated analysis, for an
+    # advanced user who wants to manage tables separately.
     # REVIEW COMMENT: the need to iterate explicitly over keys may have been
     # fixed in 2026.10. We'll install a 2026.10 environment and test doing this
     # without .keys() (I think that's a workaround you had from an earlier
     # issue we ran into with this).
     keys = list(tables.keys())   # a ResultCollection: iterate explicitly
     if set(keys) != set(taxonomies.keys()):
+        # REVIEW COMMENT: In our genome space analysis, the taxonomy will
+        # be the GTDB taxonomy directly, correct? If so, I think we don't need
+        # to pass that here and deal with the merge. Correct me if I'm wrong.
+        # Since our runs now show better performance integrating taxonomy
+        # after getting into genome-space, I think we should drop the idea of
+        # taxonomy before - that seems like an approach a more advanced user
+        # could figure out on their own if they want to.
         raise ValueError('tables and taxonomies must have the same keys: '
                          f'{sorted(keys)} vs {sorted(taxonomies.keys())}')
     relative_frequency = ctx.get_action('confluence', 'relative_frequency')
     rename_ids = ctx.get_action('feature_table', 'rename_ids')
     merge = ctx.get_action('feature_table', 'merge')
     merge_taxa = ctx.get_action('feature_table', 'merge_taxa')
-    # REVIEW COMMENT: why do we need our own merge metadata?
+    # REVIEW COMMENT: why do we need our own merge metadata? I hope we can
+    # drop this and just use stock qiime2 (even if we had to call it multiple
+    # times to support merging more than two metadata tables), but let me know
+    # why if not possible.
     merge_metadata = ctx.get_action('confluence', 'merge_metadata')
 
     relatives, rows = [], []
     for key in keys:
+        # REVIEW COMMENT: We could filter features to drop Bacteria based on
+        # the tree (which would be required in that case). That feels more
+        # natural to me than filtering features from the tables prior to
+        # integration as we'll then have the unnormalized tables on disk.
+        # Any reason not to do that, and then drop the filter steps from the
+        # tutorial?
         relative, = relative_frequency(table=tables[key])
         new_ids = {i: f'{i}-{key}' for i in relative.view(biom.Table).ids()}
         renamed, = rename_ids(table=relative, metadata=_column(new_ids),
@@ -53,6 +72,12 @@ def integrate(ctx, tables, taxonomies, tree, metadata=None):
 
     merged, = merge(tables=relatives)
     _check_tips(merged, tree)
+    # REVIEW COMMENT: similar to my comment above, if we're assuming the
+    # inputs are GTDB taxonomy, we can probably skip this step and maybe taxonomy
+    # inputs as a whole? Note that QIIME 2 allows FeatureData[Taxonomy] to
+    # have extra ids relative to the table it's used with. We could simply allow
+    # FeatureData[Taxonomy] to be provided here to check if it's missing table
+    # ids and fail if so.
     all_taxa, = merge_taxa(data=[taxonomies[k] for k in keys])
     taxonomy = ctx.make_artifact(
         'FeatureData[Taxonomy]', _restrict_taxonomy(all_taxa, merged))
@@ -67,7 +92,6 @@ def integrate(ctx, tables, taxonomies, tree, metadata=None):
 
 
 def _column(mapping):
-    # TODO: this is AI-generated code; human review pending
     s = pd.Series(mapping, name='new-id')
     s.index.name = 'sample-id'
     return qiime2.CategoricalMetadataColumn(s)
@@ -88,13 +112,9 @@ def _restrict_taxonomy(taxonomy, table):
 
 
 def _check_tips(table, tree):
-    # TODO: this is AI-generated code; human review pending
-    newick = tree.view(NewickFormat)
-    # Read like gtdb_tree_collapse, with underscores kept: the table's IDs
-    # are the tips' raw names, as UniFrac's own parser also reads them.
-    t = skbio.TreeNode.read(str(newick), format='newick',
-                            convert_underscores=False)
-    tips = {n.name for n in t.tips()}
+    # TODO: this is AI-generated code; human review pending (views the tree as
+    # skbio.TreeNode since 2026-10-23: GTDBNewickFormat quotes the tips)
+    tips = {n.name for n in tree.view(skbio.TreeNode).tips()}
     missing = [str(i) for i in table.view(biom.Table).ids(axis='observation')
                if i not in tips]
     if missing:

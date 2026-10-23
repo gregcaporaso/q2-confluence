@@ -15,7 +15,8 @@ from qiime2 import Artifact
 from qiime2.plugin import ValidationError
 from q2_types.tree import NewickFormat
 
-from q2_confluence._formats import GTDBNewickFormat, _drop_root_label
+from q2_confluence._formats import (GTDBNewickFormat, _drop_root_label,
+                                    _quote_underscore_labels)
 
 # GTDB's shape: bootstrap:taxon internal labels, a quoted root label with no
 # branch length, a space inside a quoted label, a bare bootstrap.
@@ -57,6 +58,29 @@ class DropRootLabelTests(unittest.TestCase):
             "GB_GCA_6:0.4);\n")
 
 
+class QuoteUnderscoreLabelsTests(unittest.TestCase):
+
+    def test_tips_quoted_once(self):
+        # TODO: this is AI-generated code; human review pending
+        bare = "((RS_GCF_1:0.1,RS_GCF_2:0.3)100:0.5,GB_GCA_3:0.4);"
+        quoted = "(('RS_GCF_1':0.1,'RS_GCF_2':0.3)100:0.5,'GB_GCA_3':0.4);"
+        self.assertEqual(_quote_underscore_labels(bare), quoted)
+        self.assertEqual(_quote_underscore_labels(quoted), quoted)
+        self.assertEqual(_quote_underscore_labels(GTDB),
+                         "(('RS_GCF_1':0.1,'RS_GCF_2':0.3)'100:f__A; g__B':0.5,"
+                         "'GB_GCA_3':0.4)'100:d__Bacteria';\n")
+
+    def test_labels_without_underscore_untouched(self):
+        # TODO: this is AI-generated code; human review pending
+        plain = "((a:0.1,b:0.3)100:0.5,c:0.4);"
+        self.assertEqual(_quote_underscore_labels(plain), plain)
+
+    def test_internal_label_with_underscore_quoted(self):
+        # TODO: this is AI-generated code; human review pending
+        self.assertEqual(_quote_underscore_labels("(a:0.1,b:0.3)g__A:0.5;"),
+                         "(a:0.1,b:0.3)'g__A':0.5;")
+
+
 class GTDBNewickFormatTests(unittest.TestCase):
 
     def setUp(self):
@@ -87,16 +111,18 @@ class GTDBNewickFormatTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValidationError, message):
                     GTDBNewickFormat(self.path, mode='r').validate(level)
 
-    def test_import_drops_the_root_label_only(self):
+    def test_import_drops_the_root_label_and_quotes_the_tips(self):
         # TODO: this is AI-generated code; human review pending
         tree = Artifact.import_data('Phylogeny[Rooted]', self.path,
                                     GTDBNewickFormat)
         newick = tree.view(NewickFormat)
         with newick.open() as fh:
             text = fh.read()
-        self.assertTrue(text.rstrip().endswith('GB_GCA_3:0.4);'), text)
-        parsed = skbio.TreeNode.read(str(newick), format='newick',
-                                     convert_underscores=False)
+        self.assertEqual(
+            text, "(('RS_GCF_1':0.1,'RS_GCF_2':0.3)'100:f__A; g__B':0.5,"
+                  "'GB_GCA_3':0.4);\n")
+        # the stock view (Newick convention) now keeps the underscores
+        parsed = tree.view(skbio.TreeNode)
         self.assertEqual({t.name for t in parsed.tips()},
                          {'RS_GCF_1', 'RS_GCF_2', 'GB_GCA_3'})
         self.assertIsNone(parsed.name)   # the root label is gone

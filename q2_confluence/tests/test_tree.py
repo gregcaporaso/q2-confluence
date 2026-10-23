@@ -11,7 +11,10 @@ import unittest
 import pandas as pd
 import skbio
 
+from qiime2 import Artifact
 from q2_types.tree import NewickFormat
+
+from q2_confluence._formats import GTDBNewickFormat
 
 from q2_confluence._tree import _collapse_tree, gtdb_tree_collapse
 
@@ -156,14 +159,17 @@ class GtdbTreeCollapseTests(unittest.TestCase):
         # ---------|          \-RS_GCF_2
         #          |
         #           \-GB_GCA_3
-        fmt = NewickFormat()
+        # imported as a GTDB tree is, so the tips are quoted and the stock
+        # skbio.TreeNode view, which the action takes, keeps their names
+        fmt = GTDBNewickFormat()
         with fmt.open() as fh:
             fh.write("((RS_GCF_1:0.1,RS_GCF_2:0.3)'100.0:g__A':0.5,GB_GCA_3:0.4);")
+        tree = Artifact.import_data('Phylogeny[Rooted]', fmt).view(skbio.TreeNode)
         lineage = 'd__B;p__P;c__C;o__O;f__F;'
         taxonomy = pd.Series({'RS_GCF_1': lineage + 'g__Blautia_A;s__x',
                               'RS_GCF_2': lineage + 'g__Blautia_A;s__y',
                               'GB_GCA_3': lineage + 'g__Other;s__z'})
-        out, log = gtdb_tree_collapse(fmt, taxonomy, 6)
+        out, log = gtdb_tree_collapse(tree, taxonomy, 6)
         self.assertEqual({t.name for t in out.tips()},
                          {lineage + 'g__Blautia_A', lineage + 'g__Other'})
         # written quoted, so q2-types' default reader keeps the underscores
@@ -174,7 +180,7 @@ class GtdbTreeCollapseTests(unittest.TestCase):
         self.assertEqual({t.name for t in back.tips()},
                          {lineage + 'g__Blautia_A', lineage + 'g__Other'})
         # the kept internal label survives the round trip as well
-        out2, _ = gtdb_tree_collapse(fmt, taxonomy, 7)
+        out2, _ = gtdb_tree_collapse(tree, taxonomy, 7)
         fmt3 = NewickFormat()
         with fmt3.open() as fh:
             out2.write(fh, format='newick')

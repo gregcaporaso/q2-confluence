@@ -16,7 +16,7 @@ tips, and the matching genome-keyed taxonomy.
 
 import pandas as pd
 from qiime2 import Artifact, Metadata
-from q2_types.tree import NewickFormat
+from q2_confluence._formats import GTDBNewickFormat
 
 _TREE = ("(((RS_GCF_1:0.10,RS_GCF_2:0.30)'100.0:g__Blautia':0.50,"
          "GB_GCA_3:0.40)'90.0:f__Lachnospiraceae':1.00,"
@@ -38,7 +38,8 @@ _TAXONOMY = {
 
 def _reference_tree_factory():
     # TODO: this is AI-generated code; human review pending
-    fmt = NewickFormat()
+    # Imported as a GTDB tree is: the tips get quoted on the way in.
+    fmt = GTDBNewickFormat()
     with fmt.open() as fh:
         fh.write(_TREE)
     return Artifact.import_data('Phylogeny[Rooted]', fmt)

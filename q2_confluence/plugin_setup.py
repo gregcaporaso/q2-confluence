@@ -59,8 +59,9 @@ plugin.methods.register_function(
     outputs=[('collapsed_tree', Phylogeny[Rooted]),
              ('collapse_log', ImmutableMetadata)],
     input_descriptions={
-        'tree': 'A reference tree whose tips are keyed like the taxonomy, '
-                'e.g. the GTDB bac120 tree with genome accessions as tips.',
+        'tree': 'A reference tree whose tips are keyed like the taxonomy: '
+                'the GTDB tree imported through GTDBNewickFormat, which quotes '
+                'the genome accessions so that their underscores are kept.',
         'taxonomy': 'The taxonomy of every tip, in the ;-separated rank form.'},
     parameter_descriptions={
         'level': 'The taxonomic level to collapse to, counted as in '
