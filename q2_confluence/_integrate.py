@@ -21,7 +21,8 @@ DROPPED_SHARE_WARNING = 0.1
 
 def integrate(ctx, tables, tree, metadata=None):
     # TODO: this is AI-generated code; human review pending (changed after
-    # review on 2026-10-23: study-id column, metadata keys checked first)
+    # review on 2026-10-23: study-id column, metadata keys checked first,
+    # collections iterated directly)
     """Merge every table in one feature space: the tips of `tree`.
 
     `tables` (counts or proportions, keyed by the tree's tips, e.g. GTDB
@@ -41,7 +42,7 @@ def integrate(ctx, tables, tree, metadata=None):
     """
     if metadata:
         # a usage error should fail before any work is done
-        unknown = sorted(set(metadata.keys()) - set(tables.keys()))
+        unknown = sorted(set(metadata) - set(tables))
         if unknown:
             raise ValueError(f'metadata keys {unknown} are not table keys; '
                              'key each study\'s metadata like its table')
@@ -52,9 +53,7 @@ def integrate(ctx, tables, tree, metadata=None):
     merge_metadata = ctx.get_action('metadata', 'merge')
 
     relatives, rows = [], []
-    # .keys(): iterating a ResultCollection directly yields a single
-    # dict_keyiterator in rachis 2026.10.0.dev0+7 (fixed by +8)
-    for key in tables.keys():
+    for key in tables:
         before = len(tables[key].view(biom.Table).ids(axis='observation'))
         kept, = filter_table(table=tables[key], tree=tree)
         after = len(kept.view(biom.Table).ids(axis='observation'))
@@ -89,7 +88,7 @@ def integrate(ctx, tables, tree, metadata=None):
     md = pd.DataFrame(rows).set_index('sample-id')
     if metadata:
         studies = [_suffixed(metadata[key].view(qiime2.Metadata), key)
-                   for key in metadata.keys()]
+                   for key in metadata]
         union = studies[0]
         for other in studies[1:]:
             merged_md, = merge_metadata(metadata1=union, metadata2=other,
