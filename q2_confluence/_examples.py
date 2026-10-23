@@ -195,7 +195,7 @@ def _integrate_genomes(use):
     use.action(
         use.UsageAction('confluence', 'integrate'),
         use.UsageInputs(tables=tables, tree=tree, metadata=metadata),
-        use.UsageOutputNames(relative_table='genome-relative-table',
+        use.UsageOutputNames(integrated_table='genome-relative-table',
                              integrated_metadata='genome-metadata'),
     )
 
@@ -254,15 +254,15 @@ def _paired_report_example(use):
     # one study profiled twice: its metadata goes in under both keys
     metadata = use.construct_artifact_collection(
         'metadata', {'amplicon': study, 'metagenome': study})
-    relative_table, merged_metadata = use.action(
+    integrated_table, merged_metadata = use.action(
         use.UsageAction('confluence', 'integrate'),
         use.UsageInputs(tables=tables, tree=tree, metadata=metadata),
-        use.UsageOutputNames(relative_table='genome-relative-table',
+        use.UsageOutputNames(integrated_table='genome-relative-table',
                              integrated_metadata='genome-metadata'),
     )
     use.action(
         use.UsageAction('confluence', 'paired_report'),
-        use.UsageInputs(table=relative_table, tree=tree,
+        use.UsageInputs(table=integrated_table, tree=tree,
                         metadata=merged_metadata, taxonomy=taxonomy,
                         permutations=99, cv=3, n_estimators=50,
                         random_state=1),

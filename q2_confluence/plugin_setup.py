@@ -143,7 +143,7 @@ plugin.pipelines.register_function(
             'tree': Phylogeny[Rooted],
             'metadata': Collection[ImmutableMetadata]},
     parameters={},
-    outputs=[('relative_table', FeatureTable[RelativeFrequency]),
+    outputs=[('integrated_table', FeatureTable[RelativeFrequency]),
              ('integrated_metadata', ImmutableMetadata)],
     input_descriptions={
         'tables': 'One table per source, counts or proportions, keyed by a '
@@ -161,8 +161,8 @@ plugin.pipelines.register_function(
                     'with metadata merge and joined to the output metadata.'},
     parameter_descriptions={},
     output_descriptions={
-        'relative_table': 'Every source as proportions over the features kept, '
-                          'merged; sample IDs are <id>-<key>.',
+        'integrated_table': 'Every source as proportions over the features '
+                            'kept, merged; sample IDs are <id>-<key>.',
         'integrated_metadata': 'One row per merged sample: '
                                'original-sample-id, profile-type (the key), '
                                'the source\'s features-before and '
