@@ -20,9 +20,6 @@ DROPPED_SHARE_WARNING = 0.1
 
 
 def integrate(ctx, tables, tree, metadata=None):
-    # TODO: this is AI-generated code; human review pending (changed after
-    # review on 2026-10-23: study-id column, metadata keys checked first,
-    # collections iterated directly)
     """Merge every table in one feature space: the tips of `tree`.
 
     `tables` (counts or proportions, keyed by the tree's tips, e.g. GTDB
