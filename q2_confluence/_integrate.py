@@ -20,6 +20,8 @@ DROPPED_SHARE_WARNING = 0.1
 
 
 def integrate(ctx, tables, tree, metadata=None):
+    # TODO: this is AI-generated code; human review pending (changed after
+    # review on 2026-10-23: study-id column)
     """Merge every table in one feature space: the tips of `tree`.
 
     `tables` (counts or proportions, keyed by the tree's tips, e.g. GTDB
@@ -28,7 +30,7 @@ def integrate(ctx, tables, tree, metadata=None):
     filter-table) and counted, the rest is renormalized to proportions and
     the sample IDs are suffixed with the key; the sources are then merged.
     The output metadata records, per merged sample, `original-sample-id`,
-    `profile-type` (the key), the source's `features-before` and
+    `study-id` (the key), the source's `features-before` and
     `features-after` the tree filter and their quotient
     `features-kept-share`, and the columns of the sample's own study
     metadata when given: `metadata` is keyed like `tables`, each study's
@@ -72,7 +74,7 @@ def integrate(ctx, tables, tree, metadata=None):
                               axis='sample', strict=True)
         relatives.append(renamed)
         rows += [{'sample-id': new, 'original-sample-id': old,
-                  'profile-type': key, 'features-before': before,
+                  'study-id': key, 'features-before': before,
                   'features-after': after, 'features-kept-share': share}
                  for old, new in new_ids.items()]
 

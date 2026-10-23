@@ -296,7 +296,7 @@ def _paired_relative_table_factory():
 def _paired_integrated_metadata_factory():
     # TODO: this is AI-generated code; human review pending
     df = pd.DataFrame({'original-sample-id': _PAIRED_SAMPLES[:3] * 2,
-                       'profile-type': ['amplicon'] * 3 + ['metagenome'] * 3},
+                       'study-id': ['amplicon'] * 3 + ['metagenome'] * 3},
                       index=pd.Index(_PAIRED_MERGED_IDS, name='sample-id'))
     return Artifact.import_data('ImmutableMetadata', Metadata(df))
 

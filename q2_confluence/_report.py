@@ -27,20 +27,20 @@ def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
     """How far apart are the sources, on the samples every source profiled?
 
     `table` and `metadata` come from integrate (metadata columns
-    original-sample-id and profile-type), as does `taxonomy`, which when
+    original-sample-id and study-id), as does `taxonomy`, which when
     given is tabulated beside the per-feature summary. Samples whose
-    original ID is present in every profile type are kept; the rest are
+    original ID is present in every study are kept; the rest are
     dropped. Distances are computed on the proportions as they are: no
     rarefaction, no counts.
     """
     full_md = metadata.view(qiime2.Metadata)
     md = full_md.to_dataframe()
-    for col in ('original-sample-id', 'profile-type'):
+    for col in ('original-sample-id', 'study-id'):
         if col not in md.columns:
             raise ValueError(f'metadata has no {col!r} column; use the metadata '
                              'written by integrate')
-    sources = sorted(md['profile-type'].unique())
-    by_source = [set(md.loc[md['profile-type'] == s, 'original-sample-id'])
+    sources = sorted(md['study-id'].unique())
+    by_source = [set(md.loc[md['study-id'] == s, 'original-sample-id'])
                  for s in sources]
     paired = set.intersection(*by_source)
     if len(paired) < 2:
@@ -48,7 +48,7 @@ def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
                          f'source ({sources}); at least 2 are needed')
     kept = md[md['original-sample-id'].isin(paired)]
     kept_md = full_md.filter_ids(set(kept.index))   # keeps the artifact's provenance
-    source_col = kept_md.get_column('profile-type')
+    source_col = kept_md.get_column('study-id')
 
     filter_samples = ctx.get_action('feature_table', 'filter_samples')
     filter_features = ctx.get_action('feature_table', 'filter_features')
@@ -77,9 +77,9 @@ def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
         ordination, = pcoa(distance_matrix=dm)
         plot, = scatterplot(metadata=ordination.view(qiime2.Metadata).merge(kept_md),
                             x_measure='Axis 1', y_measure='Axis 2',
-                            color_by='profile-type', title=f'PCoA, {label}')
+                            color_by='study-id', title=f'PCoA, {label}')
         sections[label] = ctx.make_report(
-            matryoshka_template, {'PERMANOVA by profile type': test, 'PCoA': plot})
+            matryoshka_template, {'PERMANOVA by study-id': test, 'PCoA': plot})
 
     rf = classify(table=table, metadata=source_col, cv=cv,
                   random_state=random_state, n_jobs=n_jobs,
@@ -109,7 +109,7 @@ def summarize_paired_features(table: biom.Table, importance: pd.DataFrame,
     abundance and prevalence, the log2 ratio of the first two sources, and
     whether the feature is seen by one source only."""
     md = metadata.to_dataframe()
-    source = md['profile-type']
+    source = md['study-id']
     sources = sorted(source.unique())
     df = table.norm(axis='sample', inplace=False).to_dataframe(dense=True)
     out = pd.DataFrame(index=df.index)

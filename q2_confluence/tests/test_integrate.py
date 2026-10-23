@@ -46,10 +46,10 @@ class IntegrateTests(TestPluginBase):
                                0.4)
         md = md.view(qiime2.Metadata).to_dataframe()
         self.assertEqual(list(md.columns)[:5],
-                         ['original-sample-id', 'profile-type', 'features-before',
+                         ['original-sample-id', 'study-id', 'features-before',
                           'features-after', 'features-kept-share'])
         self.assertEqual(md.loc['sample-1-amplicon', 'original-sample-id'], 'sample-1')
-        self.assertEqual(md.loc['sample-1-amplicon', 'profile-type'], 'amplicon')
+        self.assertEqual(md.loc['sample-1-amplicon', 'study-id'], 'amplicon')
         self.assertEqual(md.loc['sample-1-amplicon', 'features-before'], 3)
         self.assertEqual(md.loc['sample-1-amplicon', 'features-after'], 3)
         self.assertEqual(md.loc['sample-1-amplicon', 'features-kept-share'], 1.0)
@@ -76,7 +76,7 @@ class IntegrateTests(TestPluginBase):
         cols = md.view(qiime2.Metadata).to_dataframe().columns
         self.assertEqual(sorted(cols), ['features-after', 'features-before',
                                         'features-kept-share',
-                                        'original-sample-id', 'profile-type'])
+                                        'original-sample-id', 'study-id'])
 
     def test_single_table(self):
         # TODO: this is AI-generated code; human review pending
