@@ -106,7 +106,6 @@ def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
 
 def _summarize_paired_features(table: biom.Table, importance: pd.DataFrame,
                                metadata: qiime2.Metadata) -> qiime2.Metadata:
-    # TODO: this is AI-generated code; human review pending
     """Per feature: importance and rank, each study's mean relative
     abundance and prevalence, the log2 ratio of the second study over the
     first (alphabetically), and whether the feature is seen by one study
@@ -134,7 +133,6 @@ def _summarize_paired_features(table: biom.Table, importance: pd.DataFrame,
 
 
 def _two_studies(sources):
-    # TODO: this is AI-generated code; human review pending
     if len(sources) != 2:
         raise ValueError(f'{len(sources)} studies among the table\'s samples '
                          f'({sources}); exactly two are compared. Filter to '
