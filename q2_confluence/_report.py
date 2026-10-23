@@ -59,7 +59,7 @@ def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
     scatterplot = ctx.get_action('vizard', 'scatterplot_2d')
     classify = ctx.get_action('sample_classifier', 'classify_samples_ncv')
     confusion = ctx.get_action('sample_classifier', 'confusion_matrix')
-    summarize = ctx.get_action('confluence', 'summarize_paired_features')
+    summarize = ctx.get_action('confluence', '_summarize_paired_features')
     tabulate = ctx.get_action('metadata', 'tabulate')
 
     table, = filter_samples(table=table, metadata=kept_md)
@@ -102,8 +102,8 @@ def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
     return report, distance_matrices, rf.feature_importance, summary
 
 
-def summarize_paired_features(table: biom.Table, importance: pd.DataFrame,
-                              metadata: qiime2.Metadata) -> qiime2.Metadata:
+def _summarize_paired_features(table: biom.Table, importance: pd.DataFrame,
+                               metadata: qiime2.Metadata) -> qiime2.Metadata:
     # TODO: this is AI-generated code; human review pending
     """Per feature: importance and rank, each source's mean relative
     abundance and prevalence, the log2 ratio of the first two sources, and

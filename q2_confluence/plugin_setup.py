@@ -19,12 +19,11 @@ from q2_confluence._examples import (_relative_frequency_example,
                                      _gtdb_tree_collapse_genus,
                                      _integrate_genomes,
                                      _paired_report_example,
-                                     _summarize_paired_features_example,
                                      _summarize_inputs_two_studies)
 from q2_confluence._formats import GTDBNewickFormat, _gtdb_newick_to_newick
 from q2_confluence._inputs import summarize_inputs
 from q2_confluence._integrate import integrate
-from q2_confluence._report import paired_report, summarize_paired_features
+from q2_confluence._report import paired_report, _summarize_paired_features
 from q2_confluence._table import relative_frequency
 from q2_confluence._tree import GTDB_RANKS, gtdb_tree_collapse
 
@@ -185,7 +184,7 @@ plugin.pipelines.register_function(
 )
 
 plugin.methods.register_function(
-    function=summarize_paired_features,
+    function=_summarize_paired_features,
     inputs={'table': FeatureTable[Frequency | RelativeFrequency],
             'importance': FeatureData[Importance]},
     parameters={'metadata': Metadata},
@@ -207,9 +206,9 @@ plugin.methods.register_function(
         'relative abundance and prevalence, the log2 ratio between the first '
         'two sources, and whether the feature is seen by one source only. '
         'Metadata rather than a visualization, so it can be tabulated, '
-        'filtered with where clauses, or joined to a taxonomy.'
+        'filtered with where clauses, or joined to a taxonomy. Hidden: '
+        'paired-report runs it; --show-hidden-actions lists it.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
-    examples={'Three features of two sources': _summarize_paired_features_example},
 )
 
 plugin.pipelines.register_function(
@@ -248,8 +247,7 @@ plugin.pipelines.register_function(
                   'searchable and sortable, with the taxonomy when given).',
         'distance_matrices': 'The distance matrices, keyed by metric.',
         'feature_importance': 'The random forest\'s feature importances.',
-        'feature_summary': 'The per-feature summary (summarize-paired-features) '
-                           'as metadata.'},
+        'feature_summary': 'The per-feature summary as metadata.'},
     name='Compare the sources on the samples every source profiled',
     description=(
         'Keeps the samples whose original ID is present in every source and '

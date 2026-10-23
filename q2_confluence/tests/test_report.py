@@ -84,7 +84,7 @@ class PairedReportTests(TestPluginBase):
 
     def test_summary_directions(self):
         # TODO: this is AI-generated code; human review pending
-        summary, = self.plugin.methods['summarize_paired_features'](
+        summary, = self.plugin.methods['_summarize_paired_features'](
             ex._paired_relative_table_factory(), ex._paired_importance_factory(),
             ex._paired_integrated_metadata_factory().view(qiime2.Metadata))
         df = summary.view(qiime2.Metadata).to_dataframe()

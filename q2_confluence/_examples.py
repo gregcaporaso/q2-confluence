@@ -273,9 +273,10 @@ def _paired_report_example(use):
     )
 
 
-# --- per-feature summary on its own: a merged relative table, its metadata,
-# --- and the random forest's importances, as integrate and paired-report
-# --- would produce them for three features of two sources
+# --- fixtures of tests/test_report.py for the per-feature summary: a merged
+# --- relative table, its metadata, and the random forest's importances, as
+# --- integrate and paired-report would produce them for three features of
+# --- two studies (the hidden action has no usage example)
 
 _PAIRED_FEATURES = _GENOMES
 _PAIRED_MERGED_IDS = [f'{s}-{k}' for k in ('amplicon', 'metagenome')
@@ -306,18 +307,3 @@ def _paired_importance_factory():
     df = pd.DataFrame({'importance': [0.1, 0.5, 0.4]},
                       index=pd.Index(_PAIRED_FEATURES, name='feature-id'))
     return Artifact.import_data('FeatureData[Importance]', df)
-
-
-def _summarize_paired_features_example(use):
-    # TODO: this is AI-generated code; human review pending
-    table = use.init_artifact('relative-table', _paired_relative_table_factory)
-    metadata = use.init_artifact('integrated-metadata',
-                                 _paired_integrated_metadata_factory)
-    importance = use.init_artifact('feature-importance', _paired_importance_factory)
-    metadata_md = use.view_as_metadata('integrated-metadata-md', metadata)
-    use.action(
-        use.UsageAction('confluence', 'summarize_paired_features'),
-        use.UsageInputs(table=table, importance=importance,
-                        metadata=metadata_md),
-        use.UsageOutputNames(feature_summary='feature-summary'),
-    )
