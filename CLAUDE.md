@@ -29,6 +29,6 @@ The plugin is a nested repository inside the thermo-hec project, whose `CLAUDE.m
 
 ## Ownership
 
- * This repository has no docs site (removed 2026-10-16): the tutorial, its data-preparation page and the ReadTheDocs build live in the sibling repository `thermo-hec-tutorial/` (its own session), which pins this plugin by commit in its extras file. A change to an action's name, signature or output here means updating that page and its pin, and re-rendering its describe-usage blocks.
+ * This repository has no docs site (removed 2026-10-16): the tutorial and its data-preparation page live in the sibling repository `thermo-hec-tutorial/` (plain Markdown shell blocks; GitHub Pages planned), whose extras file installs this plugin from GitHub main (the commit pins were dropped on 2026-10-28). A change to an action's name, signature or output here means updating that page's commands and rerunning it on bacon (`slurm/tutorial.sbatch` in the parent project).
  * Code, tests, examples, action help text and `README.md` are Claude's to keep accurate in the same commit as the change they describe.
  * The thermo-hec project's `slurm/tutorial.sbatch` renders the tutorial page to CLI commands with rachis_cli's usage driver and runs them on bacon with both plugins installed; a change to an action's CLI is tested there (re-ship the plugin as a `git archive` tarball at the commit under test).
