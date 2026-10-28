@@ -1,14 +1,13 @@
 # q2-confluence: a [rachis](https://rachis.org) plugin for use with QIIME 2
 
-> ⚠️ This plugin is in early testing (alpha release) phase. Interfaces will almost certainly change. Be skeptical of results - testing is still in progress.
+⚠️ This plugin is in early testing (alpha release) phase. Interfaces will almost certainly change. Be skeptical of results - testing is still in progress.
 
 `q2-confluence` integrates 16S rRNA amplicon and metagenome taxonomic profiles of the same samples in the feature space of one GTDB release's genomes.
-It is designed to be a thin layer over stock QIIME 2 actions, adding [data provenance tracking](https://news.rachis.org/en/latest/glossary#term-data-provenance) to the integration.
-Its `integrate` [Action](https://news.rachis.org/en/latest/glossary#term-action) filters each profile to the genomes of the GTDB tree and merges the profiles into one `FeatureTable[RelativeFrequency]` [`rachis` Artifact](https://news.rachis.org/en/latest/glossary#term-artifact) with `ImmutableMetadata` describing every merged sample, and `paired-report` compares the studies on the samples both profiled.
-The metagenome profiles come from the companion plugin [mosh-sylph](https://github.com/gregcaporaso/mosh-sylph).
+It is designed to be a convenience layer over stock QIIME 2 [Actions](https://news.rachis.org/en/latest/glossary#term-action).
+The metagenome profiles can come from the companion plugin [mosh-sylph](https://github.com/gregcaporaso/mosh-sylph).
 
 See the [thermo-hec-tutorial](https://gregcaporaso.github.io/thermo-hec-tutorial/) ([source](https://github.com/gregcaporaso/thermo-hec-tutorial)) for documentation, including installation and usage instructions.
-Run `qiime confluence --help` after installation to learn what actions are available, and `qiime confluence <action> --help` for the details of one.
+Run `qiime confluence --help` after installation to learn what actions are available.
 
 Questions and bug reports should be directed to the [QIIME 2 Forum](https://forum.qiime2.org).
 
