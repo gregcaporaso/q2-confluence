@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h3>Inputs</h3>
-  {{ inputs | safe }}
-  <h3>Sample IDs shared between inputs</h3>
-  <p>{{ n_all }} sample IDs in all; {{ in_all }} present in every input.</p>
-  {{ overlap | safe }}
-  <h3>Sample IDs by the inputs they are present in</h3>
+  <h3>Studies</h3>
+  {{ studies | safe }}
+  <h3>Sample IDs shared between the tables</h3>
+  <p>{{ n_samples }} sample IDs in all; {{ paired }} present in every table.</p>
+  {{ sample_overlap | safe }}
   <p>
     <a class="btn btn-default" href="sample-membership.tsv" target="_blank" rel="noopener noreferrer">
       Download the per-sample membership table as a TSV
     </a>
   </p>
-  {{ patterns | safe }}
+  <h3>Feature IDs shared between the tables and the tree</h3>
+  <p>{{ n_features }} feature IDs in all; {{ kept_everywhere }} present in every table and the tree.</p>
+  {{ feature_overlap | safe }}
 {% endblock %}

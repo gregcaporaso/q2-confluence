@@ -89,24 +89,6 @@ def _relative_frequency_example(use):
     )
 
 
-def _amplicon_table_factory():
-    # TODO: this is AI-generated code; human review pending
-    import biom
-    import numpy as np
-    table = biom.Table(np.array([[12, 0, 7], [3, 9, 1]]), ['asv-1', 'asv-2'],
-                       ['sample-1', 'sample-2', 'sample-3'])
-    return Artifact.import_data('FeatureTable[Frequency]', table)
-
-
-def _metagenome_table_factory():
-    # TODO: this is AI-generated code; human review pending
-    import biom
-    import numpy as np
-    table = biom.Table(np.array([[0.6, 0.1], [0.4, 0.9]]), ['GCF_1', 'GCF_2'],
-                       ['sample-2', 'sample-3'])
-    return Artifact.import_data('FeatureTable[RelativeFrequency]', table)
-
-
 def _metadata_factory(ids, **columns):
     # TODO: this is AI-generated code; human review pending
     df = pd.DataFrame(columns, index=pd.Index(ids, name='sample-id'))
@@ -129,8 +111,11 @@ def _metagenome_metadata_factory():
 
 def _summarize_inputs_two_studies(use):
     # TODO: this is AI-generated code; human review pending
-    amplicon = use.init_artifact('amplicon-table', _amplicon_table_factory)
-    metagenome = use.init_artifact('metagenome-table', _metagenome_table_factory)
+    tree = use.init_artifact('reference-tree', _reference_tree_factory)
+    amplicon = use.init_artifact('amplicon-genome-table',
+                                 _amplicon_genome_table_factory)
+    metagenome = use.init_artifact('metagenome-genome-table',
+                                   _metagenome_genome_table_factory)
     amplicon_md = use.init_artifact('amplicon-metadata', _amplicon_metadata_factory)
     metagenome_md = use.init_artifact('metagenome-metadata',
                                       _metagenome_metadata_factory)
@@ -140,7 +125,7 @@ def _summarize_inputs_two_studies(use):
         'metadata', {'amplicon': amplicon_md, 'metagenome': metagenome_md})
     use.action(
         use.UsageAction('confluence', 'summarize_inputs'),
-        use.UsageInputs(tables=tables, metadata=metadata),
+        use.UsageInputs(tables=tables, tree=tree, metadata=metadata),
         use.UsageOutputNames(visualization='inputs-summary'),
     )
 

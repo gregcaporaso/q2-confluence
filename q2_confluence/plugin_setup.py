@@ -118,20 +118,24 @@ plugin.methods.register_function(
 plugin.visualizers.register_function(
     function=summarize_inputs,
     inputs={'tables': Collection[FeatureTable[Frequency | RelativeFrequency]],
+            'tree': Phylogeny[Rooted],
             'metadata': Collection[ImmutableMetadata]},
     parameters={},
     input_descriptions={
-        'tables': 'The feature tables to integrate, keyed by a label.',
-        'metadata': 'The studies\' sample metadata, keyed by a label '
-                    '(import a metadata TSV as ImmutableMetadata).'},
+        'tables': 'The tables integrate will take, keyed by study.',
+        'tree': 'The reference tree integrate will take; a study\'s features '
+                'that are not its tips count as dropped.',
+        'metadata': 'The studies\' sample metadata, keyed like the tables '
+                    '(optional, any subset of the keys).'},
     parameter_descriptions={},
-    name='Summarize the sample IDs shared between inputs',
+    name='Summarize the inputs of integrate',
     description=(
-        'Before integrating: how many samples each table and metadata input '
-        'holds, how many sample IDs each pair shares, and how many IDs fall '
-        'into each combination of inputs, with the per-sample membership as a '
-        'TSV. Integration pairs samples by identical IDs, so this shows which '
-        'samples will pair and which metadata rows have no table.'
+        'Before integrating: per study, how many samples its table and its '
+        'metadata hold and share, and how many of its features are tips of '
+        'the tree (what integrate keeps); across studies, the sample IDs the '
+        'tables share (integrate pairs samples by identical IDs) and the '
+        'feature IDs the tables and the tree share; the per-sample '
+        'membership as a TSV.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
     examples={'Two studies': _summarize_inputs_two_studies},
 )
