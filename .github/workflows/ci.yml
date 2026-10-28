@@ -8,58 +8,59 @@ on:
 
 jobs:
   build-q2-confluence:
+    name: qiime2 on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-15-intel]
+        include:
+          - os: ubuntu-latest
+            subdir: linux-64
+          - os: macos-15-intel
+            subdir: osx-64
 
     steps:
     - name: checkout source
       uses: actions/checkout@v6.0.2
 
-    - name: set up python 3.12
-      uses: actions/setup-python@v6.2.0
-      with:
-        python-version: 3.12
-
-    - name: install dependencies
+    # The base environment is the qiime2 distribution's released 2026.10
+    # environment, the file behind https://install.qiime2.org (the plugin
+    # needs q2-diversity, q2-feature-table, q2-phylogeny, q2-sample-classifier,
+    # q2-vizard and q2-metadata); the plugin's extras are layered on with
+    # conda env update (2026-10-28, release day).
+    - name: fetch the qiime2 distribution's 2026.10 environment file
       run: |
-        python -m pip install --upgrade pip
-        pip install -q flake8
-        pip install -q https://github.com/qiime2/q2lint/archive/master.zip
+        curl -sSL -o rachis-2026.10.yml \
+          https://raw.githubusercontent.com/qiime2/distributions/refs/heads/dev/2026.10/qiime2/released/rachis-qiime2-${{ matrix.subdir }}-conda.yml
 
     - name: Set up Conda
       uses: qiime2-cutlery/setup-miniconda@v3
       with:
-        activate-environment: q2-confluence-qiime2-dev
-        environment-file: environment-files/q2-confluence-qiime2-dev.yml
+        activate-environment: q2-confluence-2026.10
+        environment-file: rachis-2026.10.yml
         auto-activate-base: false
+
+    - name: Add the plugin's extras
+      shell: bash -l {0}
+      run: conda env update -n q2-confluence-2026.10 --file environment-files/q2-confluence-dev-extras.yml
 
     - name: Install plugin
       shell: bash -l {0}
-      run: |
-        cd q2-confluence
-        make install
+      run: make install
 
     - name: Call info on the deployment
       shell: bash -l {0}
-      run: |
-        qiime info
+      run: qiime info
 
     - name: Call --help on plugin
       shell: bash -l {0}
-      run: |
-        qiime confluence --help
+      run: qiime confluence --help
 
     - name: Test plugin
       shell: bash -l {0}
-      run: |
-        cd q2-confluence
-        make test
+      run: make test
 
     - name: Lint plugin
       shell: bash -l {0}
-      run: |
-        cd q2-confluence
-        flake8
-        q2lint
+      run: make lint

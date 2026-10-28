@@ -1,10 +1,9 @@
 # What q2-confluence needs on top of the QIIME 2 "qiime2" distribution's
-# development environment: the linters. The tutorial site and its toolchain
-# live in the thermo-hec-tutorial repository (2026-10-16). The base environment comes from the distribution's dev environment
-# file, as in https://develop.qiime2.org/en/stable/plugins/how-to-guides/set-up-development-environment.html;
-# this file is applied to it with `conda env update` (README, "Development
-# installation"). 2026-10-16: replaced the metapackage-based file (2026.10 is
-# unreleased, and its channel has no Apple Silicon build).
+# released 2026.10 environment (https://install.qiime2.org): the linters.
+# Applied with `conda env update -n rachis-qiime2-2026.10 --file <this file>`,
+# then `make dev`. CI builds the same way (.github/workflows/ci.yml).
+# 2026-10-28: the base moved from the distribution's dev/latest/passed file
+# to the release.
 channels:
 - conda-forge
 - bioconda
