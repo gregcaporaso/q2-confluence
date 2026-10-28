@@ -185,7 +185,7 @@ plugin.pipelines.register_function(
 
 plugin.methods.register_function(
     function=_summarize_paired_features,
-    inputs={'table': FeatureTable[Frequency | RelativeFrequency],
+    inputs={'table': FeatureTable[RelativeFrequency],
             'importance': FeatureData[Importance]},
     parameters={'metadata': Metadata},
     outputs=[('feature_summary', ImmutableMetadata)],

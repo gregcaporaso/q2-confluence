@@ -110,7 +110,7 @@ def _summarize_paired_features(table: biom.Table, importance: pd.DataFrame,
     abundance and prevalence, the log2 ratio of the second study over the
     first (alphabetically), and whether the feature is seen by one study
     only. The table's samples must belong to exactly two studies."""
-    df = table.norm(axis='sample', inplace=False).to_dataframe(dense=True)
+    df = table.to_dataframe(dense=True)
     source = metadata.to_dataframe()['study-id'].reindex(df.columns)
     sources = sorted(source.dropna().unique())
     _two_studies(sources)
