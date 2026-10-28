@@ -27,8 +27,6 @@ GTDB_RANKS = 7
 
 def gtdb_tree_collapse(tree: skbio.TreeNode, taxonomy: pd.Series,
                        level: int) -> (skbio.TreeNode, qiime2.Metadata):
-    # TODO: this is AI-generated code; human review pending (takes the
-    # skbio.TreeNode view since 2026-10-23; the function had passed)
     """The registered action. The tree's tip names must be the taxonomy's
     IDs as written: a GTDB tree imported through GTDBNewickFormat has its
     tips quoted, so the view keeps their underscores. The collapsed names

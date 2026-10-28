@@ -86,9 +86,7 @@ plugin.methods.register_function(
         'taxon has no name at the level, or a group is not monophyletic. Run '
         'once per reference release and level; UniFrac tolerates tips absent '
         'from a table, so the same tree serves every table collapsed to that '
-        'level. Provisional: expected to move to q2-phylogeny.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
-    deprecated=True,
+        'level. Provisional: expected to move to q2-phylogeny.'),
     examples={'Collapse a GTDB tree to genus': _gtdb_tree_collapse_genus},
 )
 
@@ -111,7 +109,6 @@ plugin.methods.register_function(
         'table from which features were dropped sums to 1 again. integrate '
         'uses it on every source. Provisional: expected to be folded into '
         'feature-table relative-frequency.'),
-    deprecated=True,
     examples={'Renormalize after dropping a feature': _relative_frequency_example},
 )
 

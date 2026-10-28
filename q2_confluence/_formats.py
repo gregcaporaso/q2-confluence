@@ -63,7 +63,6 @@ def _drop_root_label(text: str) -> str:
 
 
 def _quote_underscore_labels(text: str) -> str:
-    # TODO: this is AI-generated code; human review pending
     """The Newick text with every bare label that contains an underscore
     quoted; labels already quoted, and labels without an underscore, are
     left as they are."""
@@ -71,8 +70,6 @@ def _quote_underscore_labels(text: str) -> str:
 
 
 def _gtdb_newick_to_newick(ff: GTDBNewickFormat) -> NewickFormat:
-    # TODO: this is AI-generated code; human review pending (quoting added on
-    # 2026-10-23, after the function had passed)
     result = NewickFormat()
     with ff.open() as src, result.open() as dst:
         dst.write(_quote_underscore_labels(_drop_root_label(src.read())))
