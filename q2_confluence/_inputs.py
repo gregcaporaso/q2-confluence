@@ -21,13 +21,10 @@ def summarize_inputs(output_dir: str, tables: biom.Table,
                      metadata: qiime2.Metadata = None) -> None:
     # TODO: this is AI-generated code; human review pending
     """Which sample IDs do the inputs share? `tables` and `metadata` are
-    collections (dicts keyed by label); the labels must not collide."""
+    collections (dicts keyed by label)."""
     ids = {f'table-{k}': set(t.ids()) for k, t in tables.items()}
     for k, md in (metadata or {}).items():
-        key = f'metadata-{k}'
-        if key in ids:
-            raise ValueError(f'duplicate input label {k!r}')
-        ids[key] = set(md.ids)
+        ids[f'metadata-{k}'] = set(md.ids)
     labels = list(ids)
 
     inputs = pd.DataFrame({
