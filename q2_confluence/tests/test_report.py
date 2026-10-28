@@ -38,9 +38,7 @@ class PairedReportTests(TestPluginBase):
         report, dms, importance, summary = self.plugin.pipelines['paired_report'](
             self.table, self.tree, self.metadata, taxonomy=self.taxonomy,
             permutations=99, cv=3, n_estimators=50, random_state=1)
-        self.assertEqual(sorted(dms.keys()),
-                         ['braycurtis', 'jaccard', 'unweighted_unifrac',
-                          'weighted_unifrac'])
+        self.assertEqual(sorted(dms.keys()), ['braycurtis', 'weighted_unifrac'])
         imp = importance.view(pd.DataFrame)
         self.assertEqual(len(imp), 3)
         df = summary.view(qiime2.Metadata).to_dataframe()

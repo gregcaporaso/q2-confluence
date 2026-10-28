@@ -249,15 +249,16 @@ plugin.pipelines.register_function(
                   'scatter plot; the random forest\'s confusion matrix; and '
                   'the per-feature summary tabulated (every feature, '
                   'searchable and sortable, with the taxonomy when given).',
-        'distance_matrices': 'The distance matrices, keyed by metric.',
+        'distance_matrices': 'The distance matrices, keyed braycurtis and '
+                             'weighted_unifrac.',
         'feature_importance': 'The random forest\'s feature importances.',
         'feature_summary': 'The per-feature summary as metadata.'},
     name='Compare the sources on the samples every source profiled',
     description=(
         'Keeps the samples whose original ID is present in both studies and '
-        'computes Bray-Curtis, Jaccard, unweighted and weighted UniFrac on the '
-        'proportions as they are (no rarefaction), with PERMANOVA by study-id '
-        'and a PCoA scatter plot for each; then a random forest classifying '
+        'computes Bray-Curtis and weighted UniFrac on the proportions as they '
+        'are (no rarefaction, so no presence-based metric), with PERMANOVA by '
+        'study-id and a PCoA scatter plot for each; then a random forest classifying '
         'study-id with nested cross-validation and the per-feature summary, '
         'collated into one report.'
         ' EXPERIMENTAL: this is AI-generated code; human review pending.'),

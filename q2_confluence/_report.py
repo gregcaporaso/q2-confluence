@@ -15,15 +15,13 @@ from q2templates.reports import matryoshka_template
 EPS = 1e-9
 
 
+# proportions are not rarefied, so no presence-based metric (2026-10-28)
 _METRICS = {'braycurtis': ('Bray-Curtis', False),
-            'jaccard': ('Jaccard', False),
-            'unweighted_unifrac': ('unweighted UniFrac', True),
             'weighted_unifrac': ('weighted UniFrac', True)}
 
 
 def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
                   cv=10, n_estimators=500, random_state=None, n_jobs=1):
-    # TODO: this is AI-generated code; human review pending
     """How far apart are two studies, on the samples both profiled?
 
     `table` and `metadata` come from integrate (metadata columns
@@ -96,6 +94,8 @@ def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
         taxa = taxonomy.view(qiime2.Metadata)
         missing = set(summary_md.ids) - set(taxa.ids)
         if missing:
+            # REVIEW: Can we bump this step earlier, so a lot of work hasn't
+            # been done before this error arises?
             raise ValueError(f'{len(missing)} features of the table are not in '
                              f'the taxonomy, e.g. {sorted(missing)[:3]}')
         summary_md = summary_md.merge(taxa.filter_ids(summary_md.ids))
