@@ -208,9 +208,7 @@ plugin.methods.register_function(
         'study over the first, and whether the feature is seen by one study '
         'only; the table must hold exactly two studies. '
         'Metadata rather than a visualization, so it can be tabulated, '
-        'filtered with where clauses, or joined to a taxonomy. Hidden: '
-        'paired-report runs it; --show-hidden-actions lists it.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+        'filtered with where clauses, or joined to a taxonomy.'),
 )
 
 plugin.pipelines.register_function(
@@ -260,7 +258,6 @@ plugin.pipelines.register_function(
         'are (no rarefaction, so no presence-based metric), with PERMANOVA by '
         'study-id and a PCoA scatter plot for each; then a random forest classifying '
         'study-id with nested cross-validation and the per-feature summary, '
-        'collated into one report.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+        'collated into one report.'),
     examples={'Two sources on six paired samples': _paired_report_example},
 )
