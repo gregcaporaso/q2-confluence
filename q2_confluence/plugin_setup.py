@@ -132,8 +132,7 @@ plugin.visualizers.register_function(
         'the tree (what integrate keeps); across studies, the sample IDs the '
         'tables share (integrate pairs samples by identical IDs) and the '
         'feature IDs the tables and the tree share; the per-sample '
-        'membership as a TSV.'
-        ' EXPERIMENTAL: this is AI-generated code; human review pending.'),
+        'membership as a TSV.'),
     examples={'Two studies': _summarize_inputs_two_studies},
 )
 

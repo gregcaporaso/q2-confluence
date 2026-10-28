@@ -20,7 +20,6 @@ _ASSETS = importlib.resources.files('q2_confluence') / 'assets'
 
 def summarize_inputs(output_dir: str, tables: biom.Table, tree: skbio.TreeNode,
                      metadata: qiime2.Metadata = None) -> None:
-    # TODO: this is AI-generated code; human review pending
     """What integrate will find in its inputs: per study, the samples of
     its table and metadata and the features that are tips of the tree;
     across studies, the sample IDs the tables share (the pairs) and the
