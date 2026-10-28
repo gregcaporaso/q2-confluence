@@ -64,6 +64,13 @@ def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
 
     table, = filter_samples(table=table, metadata=kept_md)
     table, = filter_features(table=table, min_samples=1)
+    if taxonomy is not None:   # a usage error should fail before the work
+        taxa = taxonomy.view(qiime2.Metadata)
+        features = table.view(biom.Table).ids(axis='observation')
+        missing = set(features) - set(taxa.ids)
+        if missing:
+            raise ValueError(f'{len(missing)} features of the table are not in '
+                             f'the taxonomy, e.g. {sorted(missing)[:3]}')
     sections, distance_matrices = {}, {}
     for metric, (label, phylogenetic) in _METRICS.items():
         if phylogenetic:
@@ -91,13 +98,6 @@ def paired_report(ctx, table, tree, metadata, taxonomy=None, permutations=999,
                          metadata=kept_md)
     summary_md = summary.view(qiime2.Metadata)   # the artifact stays in provenance
     if taxonomy is not None:
-        taxa = taxonomy.view(qiime2.Metadata)
-        missing = set(summary_md.ids) - set(taxa.ids)
-        if missing:
-            # REVIEW: Can we bump this step earlier, so a lot of work hasn't
-            # been done before this error arises?
-            raise ValueError(f'{len(missing)} features of the table are not in '
-                             f'the taxonomy, e.g. {sorted(missing)[:3]}')
         summary_md = summary_md.merge(taxa.filter_ids(summary_md.ids))
     sections['Per-feature summary'], = tabulate(input=summary_md)
     report = ctx.make_report(matryoshka_template, sections)
