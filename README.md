@@ -3,8 +3,11 @@
 A [QIIME 2](https://qiime2.org) plugin by Greg Caporaso that integrates 16S rRNA amplicon and metagenome taxonomic profiles on one GTDB release.
 The registered plugin name is `confluence` (`qiime confluence --help`); the Python package is `q2_confluence`.
 
+> **This plugin is in early testing (alpha release) phase.**
+> **Interfaces will almost certainly change.**
+
 Status: in development, not yet released; the repository is private for now.
-Actions marked deprecated at registration are provisional and name the plugin they are expected to move to.
+Provisional actions say in their description which plugin they are expected to move to.
 
 ## Actions
 

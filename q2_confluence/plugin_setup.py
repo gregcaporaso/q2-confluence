@@ -40,8 +40,8 @@ plugin = Plugin(
     short_description="Integrate amplicon and metagenome taxonomic profiles.",
 )
 
-# Provisional actions are registered with deprecated=True and name the plugin
-# they are expected to move to, so users see up front what is not stable here.
+# Provisional actions name the plugin they are expected to move to in their
+# description; the README's alpha note covers the plugin as a whole.
 
 # GTDB's released trees import as Phylogeny[Rooted] through this format
 # (qiime tools import --input-format GTDBNewickFormat); the transformer drops
