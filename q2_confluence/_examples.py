@@ -95,7 +95,7 @@ def _metadata_factory(ids, **columns):
     return Artifact.import_data('ImmutableMetadata', Metadata(df))
 
 
-def _16S_metadata_factory():
+def _amplicon_metadata_factory():
     # TODO: this is AI-generated code; human review pending
     return _metadata_factory(['sample-1', 'sample-2', 'sample-3'],
                              site=['compost', 'compost', 'soil'],
@@ -112,17 +112,17 @@ def _metagenome_metadata_factory():
 def _summarize_inputs_two_studies(use):
     # TODO: this is AI-generated code; human review pending
     tree = use.init_artifact('reference-tree', _reference_tree_factory)
-    s16 = use.init_artifact('16S-genome-table',
-                            _16S_genome_table_factory)
+    amplicon = use.init_artifact('amplicon-genome-table',
+                                 _amplicon_genome_table_factory)
     metagenome = use.init_artifact('metagenome-genome-table',
                                    _metagenome_genome_table_factory)
-    s16_md = use.init_artifact('16S-metadata', _16S_metadata_factory)
+    amplicon_md = use.init_artifact('amplicon-metadata', _amplicon_metadata_factory)
     metagenome_md = use.init_artifact('metagenome-metadata',
                                       _metagenome_metadata_factory)
     tables = use.construct_artifact_collection(
-        'tables', {'16S': s16, 'metagenome': metagenome})
+        'tables', {'amplicon': amplicon, 'metagenome': metagenome})
     metadata = use.construct_artifact_collection(
-        'metadata', {'16S': s16_md, 'metagenome': metagenome_md})
+        'metadata', {'amplicon': amplicon_md, 'metagenome': metagenome_md})
     use.action(
         use.UsageAction('confluence', 'summarize_inputs'),
         use.UsageInputs(tables=tables, tree=tree, metadata=metadata),
@@ -142,7 +142,7 @@ def _taxonomy_factory(mapping):
 _GENOMES = ['RS_GCF_1', 'GB_GCA_3', 'RS_GCF_4']
 
 
-def _16S_genome_table_factory():
+def _amplicon_genome_table_factory():
     # TODO: this is AI-generated code; human review pending
     """ASV counts summed per reference genome, as closed-reference
     clustering against the GTDB SSU reference leaves them."""
@@ -166,17 +166,17 @@ def _metagenome_genome_table_factory():
 def _integrate_genomes(use):
     # TODO: this is AI-generated code; human review pending
     tree = use.init_artifact('reference-tree', _reference_tree_factory)
-    s16 = use.init_artifact('16S-genome-table',
-                            _16S_genome_table_factory)
+    amplicon = use.init_artifact('amplicon-genome-table',
+                                 _amplicon_genome_table_factory)
     metagenome = use.init_artifact('metagenome-genome-table',
                                    _metagenome_genome_table_factory)
-    s16_md = use.init_artifact('16S-metadata', _16S_metadata_factory)
+    amplicon_md = use.init_artifact('amplicon-metadata', _amplicon_metadata_factory)
     metagenome_md = use.init_artifact('metagenome-metadata',
                                       _metagenome_metadata_factory)
     tables = use.construct_artifact_collection(
-        'tables', {'16S': s16, 'metagenome': metagenome})
+        'tables', {'amplicon': amplicon, 'metagenome': metagenome})
     metadata = use.construct_artifact_collection(
-        'metadata', {'16S': s16_md, 'metagenome': metagenome_md})
+        'metadata', {'amplicon': amplicon_md, 'metagenome': metagenome_md})
     use.action(
         use.UsageAction('confluence', 'integrate'),
         use.UsageInputs(tables=tables, tree=tree, metadata=metadata),
@@ -199,7 +199,7 @@ def _paired_counts(rng, bias):
     return base
 
 
-def _paired_16S_table_factory():
+def _paired_amplicon_table_factory():
     # TODO: this is AI-generated code; human review pending
     """Closed-reference counts per genome; the same three genomes sylph sees."""
     import biom
@@ -231,14 +231,14 @@ def _paired_report_example(use):
     taxonomy = use.init_artifact('reference-taxonomy',
                                  _reference_taxonomy_factory)
     tables = use.construct_artifact_collection('tables', {
-        '16S': use.init_artifact('16S-genome-table',
-                                 _paired_16S_table_factory),
+        'amplicon': use.init_artifact('amplicon-genome-table',
+                                      _paired_amplicon_table_factory),
         'metagenome': use.init_artifact('metagenome-genome-table',
                                         _paired_metagenome_table_factory)})
     study = use.init_artifact('study-metadata', _paired_metadata_factory)
     # one study profiled twice: its metadata goes in under both keys
     metadata = use.construct_artifact_collection(
-        'metadata', {'16S': study, 'metagenome': study})
+        'metadata', {'amplicon': study, 'metagenome': study})
     integrated_table, merged_metadata = use.action(
         use.UsageAction('confluence', 'integrate'),
         use.UsageInputs(tables=tables, tree=tree, metadata=metadata),
@@ -264,7 +264,7 @@ def _paired_report_example(use):
 # --- two studies (the hidden action has no usage example)
 
 _PAIRED_FEATURES = _GENOMES
-_PAIRED_MERGED_IDS = [f'{s}-{k}' for k in ('16S', 'metagenome')
+_PAIRED_MERGED_IDS = [f'{s}-{k}' for k in ('amplicon', 'metagenome')
                       for s in _PAIRED_SAMPLES[:3]]
 
 
@@ -273,7 +273,7 @@ def _paired_relative_table_factory():
     import biom
     import numpy as np
     data = np.array([[0.5, 0.6, 0.4, 0.3, 0.2, 0.3],    # shared
-                     [0.5, 0.4, 0.6, 0.0, 0.0, 0.0],    # 16S only
+                     [0.5, 0.4, 0.6, 0.0, 0.0, 0.0],    # amplicon only
                      [0.0, 0.0, 0.0, 0.7, 0.8, 0.7]])   # metagenome only
     table = biom.Table(data, _PAIRED_FEATURES, _PAIRED_MERGED_IDS)
     return Artifact.import_data('FeatureTable[RelativeFrequency]', table)
@@ -282,7 +282,7 @@ def _paired_relative_table_factory():
 def _paired_integrated_metadata_factory():
     # TODO: this is AI-generated code; human review pending
     df = pd.DataFrame({'original-sample-id': _PAIRED_SAMPLES[:3] * 2,
-                       'study-id': ['16S'] * 3 + ['metagenome'] * 3},
+                       'study-id': ['amplicon'] * 3 + ['metagenome'] * 3},
                       index=pd.Index(_PAIRED_MERGED_IDS, name='sample-id'))
     return Artifact.import_data('ImmutableMetadata', Metadata(df))
 

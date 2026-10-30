@@ -28,9 +28,9 @@ class PairedReportTests(TestPluginBase):
         # produces one, and the report takes any taxonomy covering the table
         self.taxonomy = ex._reference_taxonomy_factory()
         self.table, self.metadata = self.plugin.pipelines['integrate'](
-            {'16S': ex._paired_16S_table_factory(),
+            {'amplicon': ex._paired_amplicon_table_factory(),
              'metagenome': ex._paired_metagenome_table_factory()},
-            self.tree, metadata={'16S': ex._paired_metadata_factory(),
+            self.tree, metadata={'amplicon': ex._paired_metadata_factory(),
                                  'metagenome': ex._paired_metadata_factory()})
 
     def test_report(self):
@@ -44,11 +44,11 @@ class PairedReportTests(TestPluginBase):
         df = summary.view(qiime2.Metadata).to_dataframe()
         self.assertEqual(df.index.name, 'feature-id')
         self.assertEqual(sorted(df.columns), [
-            'direction', 'importance', 'log2-metagenome-over-16S',
-            'mean-16S', 'mean-metagenome', 'prevalence-16S',
+            'direction', 'importance', 'log2-metagenome-over-amplicon',
+            'mean-amplicon', 'mean-metagenome', 'prevalence-amplicon',
             'prevalence-metagenome', 'rank'])
         self.assertEqual(set(df['direction']), {'shared'})
-        self.assertEqual(df['prevalence-16S'].tolist(), [6, 6, 6])
+        self.assertEqual(df['prevalence-amplicon'].tolist(), [6, 6, 6])
         self.assertEqual(df['rank'].tolist(), [1, 2, 3])
         with tempfile.TemporaryDirectory() as d:
             report.export_data(d)
@@ -87,10 +87,10 @@ class PairedReportTests(TestPluginBase):
             ex._paired_integrated_metadata_factory().view(qiime2.Metadata))
         df = summary.view(qiime2.Metadata).to_dataframe()
         self.assertEqual(df['direction'].tolist(),
-                         ['16S-only', 'metagenome-only', 'shared'])
+                         ['amplicon-only', 'metagenome-only', 'shared'])
         self.assertEqual(df['rank'].tolist(), [1, 2, 3])
         self.assertEqual(df['prevalence-metagenome'].tolist(), [0, 3, 3])
-        self.assertAlmostEqual(df['mean-16S'].iloc[0], 0.5)
+        self.assertAlmostEqual(df['mean-amplicon'].iloc[0], 0.5)
 
     def test_unpaired_samples_dropped(self):
         # TODO: this is AI-generated code; human review pending
@@ -103,7 +103,7 @@ class PairedReportTests(TestPluginBase):
             cv=3, n_estimators=50, random_state=1)
         dm = dms['braycurtis'].view(__import__('skbio').DistanceMatrix)
         self.assertEqual(len(dm.ids), 10)
-        self.assertNotIn('sample-6-16S', dm.ids)
+        self.assertNotIn('sample-6-amplicon', dm.ids)
 
     def test_too_few_pairs(self):
         # TODO: this is AI-generated code; human review pending

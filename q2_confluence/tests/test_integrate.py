@@ -23,9 +23,9 @@ class IntegrateTests(TestPluginBase):
         super().setUp()
         self.integrate = self.plugin.pipelines['integrate']
         self.tree = ex._reference_tree_factory()
-        self.tables = {'16S': ex._16S_genome_table_factory(),
+        self.tables = {'amplicon': ex._amplicon_genome_table_factory(),
                        'metagenome': ex._metagenome_genome_table_factory()}
-        self.metadata = {'16S': ex._16S_metadata_factory(),
+        self.metadata = {'amplicon': ex._amplicon_metadata_factory(),
                          'metagenome': ex._metagenome_metadata_factory()}
 
     def test_genomes(self):
@@ -35,11 +35,11 @@ class IntegrateTests(TestPluginBase):
         self.assertEqual(sorted(rel.ids(axis='observation')),
                          ['GB_GCA_3', 'RS_GCF_1', 'RS_GCF_2', 'RS_GCF_4'])
         self.assertEqual(sorted(rel.ids()),
-                         ['sample-1-16S', 'sample-2-16S',
-                          'sample-2-metagenome', 'sample-3-16S',
+                         ['sample-1-amplicon', 'sample-2-amplicon',
+                          'sample-2-metagenome', 'sample-3-amplicon',
                           'sample-3-metagenome'])
-        # nothing is collapsed or dropped: sample-1 16S = 12 + 3 + 1 counts
-        self.assertAlmostEqual(rel.get_value_by_ids('RS_GCF_1', 'sample-1-16S'),
+        # nothing is collapsed or dropped: sample-1 amplicon = 12 + 3 + 1 counts
+        self.assertAlmostEqual(rel.get_value_by_ids('RS_GCF_1', 'sample-1-amplicon'),
                                12 / 16)
         # the metagenome source came in as proportions
         self.assertAlmostEqual(rel.get_value_by_ids('RS_GCF_2', 'sample-2-metagenome'),
@@ -48,27 +48,27 @@ class IntegrateTests(TestPluginBase):
         self.assertEqual(list(md.columns)[:5],
                          ['original-sample-id', 'study-id', 'features-before',
                           'features-after', 'features-kept-share'])
-        self.assertEqual(md.loc['sample-1-16S', 'original-sample-id'], 'sample-1')
-        self.assertEqual(md.loc['sample-1-16S', 'study-id'], '16S')
-        self.assertEqual(md.loc['sample-1-16S', 'features-before'], 3)
-        self.assertEqual(md.loc['sample-1-16S', 'features-after'], 3)
-        self.assertEqual(md.loc['sample-1-16S', 'features-kept-share'], 1.0)
+        self.assertEqual(md.loc['sample-1-amplicon', 'original-sample-id'], 'sample-1')
+        self.assertEqual(md.loc['sample-1-amplicon', 'study-id'], 'amplicon')
+        self.assertEqual(md.loc['sample-1-amplicon', 'features-before'], 3)
+        self.assertEqual(md.loc['sample-1-amplicon', 'features-after'], 3)
+        self.assertEqual(md.loc['sample-1-amplicon', 'features-kept-share'], 1.0)
         # each merged sample carries its own study's columns: the studies
         # share IDs and the column site, which is fine once the IDs are
         # suffixed per source
-        self.assertEqual(md.loc['sample-1-16S', 'site'], 'compost')
-        self.assertEqual(md.loc['sample-3-16S', 'site'], 'soil')
+        self.assertEqual(md.loc['sample-1-amplicon', 'site'], 'compost')
+        self.assertEqual(md.loc['sample-3-amplicon', 'site'], 'soil')
         self.assertEqual(md.loc['sample-3-metagenome', 'site'], 'soil')
         self.assertAlmostEqual(md.loc['sample-3-metagenome', 'read-pairs-millions'],
                                38.7)
-        self.assertTrue(np.isnan(md.loc['sample-3-16S', 'read-pairs-millions']))
+        self.assertTrue(np.isnan(md.loc['sample-3-amplicon', 'read-pairs-millions']))
 
     def test_metadata_key_not_a_table_key(self):
         # TODO: this is AI-generated code; human review pending
         with self.assertRaisesRegex(ValueError, r"metadata keys \['study'\] are "
                                     'not table keys'):
             self.integrate(self.tables, self.tree,
-                           metadata={'study': self.metadata['16S']})
+                           metadata={'study': self.metadata['amplicon']})
 
     def test_metadata_keys_checked_before_the_work(self):
         # TODO: this is AI-generated code; human review pending
@@ -80,7 +80,7 @@ class IntegrateTests(TestPluginBase):
             'FeatureTable[RelativeFrequency]', table)
         with self.assertRaisesRegex(ValueError, 'metadata keys'):
             self.integrate({'metagenome': unprefixed}, self.tree,
-                           metadata={'study': self.metadata['16S']})
+                           metadata={'study': self.metadata['amplicon']})
 
     def test_without_metadata(self):
         # TODO: this is AI-generated code; human review pending
@@ -92,15 +92,15 @@ class IntegrateTests(TestPluginBase):
 
     def test_single_table(self):
         # TODO: this is AI-generated code; human review pending
-        rel, md = self.integrate({'16S': self.tables['16S']}, self.tree,
-                                 metadata={'16S': self.metadata['16S']})
+        rel, md = self.integrate({'amplicon': self.tables['amplicon']}, self.tree,
+                                 metadata={'amplicon': self.metadata['amplicon']})
         rel = rel.view(biom.Table)
-        self.assertEqual(sorted(rel.ids()), ['sample-1-16S',
-                                             'sample-2-16S',
-                                             'sample-3-16S'])
+        self.assertEqual(sorted(rel.ids()), ['sample-1-amplicon',
+                                             'sample-2-amplicon',
+                                             'sample-3-amplicon'])
         self.assertTrue(np.allclose(rel.sum(axis='sample'), 1.0))
         md = md.view(qiime2.Metadata).to_dataframe()
-        self.assertEqual(md.loc['sample-2-16S', 'site'], 'compost')
+        self.assertEqual(md.loc['sample-2-amplicon', 'site'], 'compost')
 
     def test_features_not_in_tree_dropped_and_counted(self):
         # TODO: this is AI-generated code; human review pending
@@ -114,7 +114,7 @@ class IntegrateTests(TestPluginBase):
                                             table)
         with self.assertWarnsRegex(RachisWarning, 'metagenome: 2 of its 3 '
                                    'features .67%. are not tips'):
-            rel, md = self.integrate({'16S': self.tables['16S'],
+            rel, md = self.integrate({'amplicon': self.tables['amplicon'],
                                       'metagenome': extra}, self.tree)
         rel = rel.view(biom.Table)
         self.assertEqual(sorted(rel.ids(axis='observation')),
@@ -126,7 +126,7 @@ class IntegrateTests(TestPluginBase):
         self.assertEqual(md.loc['sample-2-metagenome', 'features-after'], 1)
         self.assertAlmostEqual(md.loc['sample-2-metagenome', 'features-kept-share'],
                                1 / 3)
-        self.assertEqual(md.loc['sample-2-16S', 'features-kept-share'], 1.0)
+        self.assertEqual(md.loc['sample-2-amplicon', 'features-kept-share'], 1.0)
 
     def test_no_feature_in_tree(self):
         # TODO: this is AI-generated code; human review pending
@@ -137,5 +137,5 @@ class IntegrateTests(TestPluginBase):
             'FeatureTable[RelativeFrequency]', table)
         with self.assertRaisesRegex(ValueError, 'metagenome: none of its 2 '
                                     'features is a tip of the tree'):
-            self.integrate({'16S': self.tables['16S'],
+            self.integrate({'amplicon': self.tables['amplicon'],
                             'metagenome': unprefixed}, self.tree)
