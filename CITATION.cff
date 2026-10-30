@@ -1,0 +1,8 @@
+cff-version: 1.2.0
+message: "If you use q2-confluence, please cite it as below."
+title: "q2-confluence: integrating 16S rRNA amplicon and metagenome taxonomic profiles in the feature space of GTDB genomes"
+authors:
+  - family-names: Caporaso
+    given-names: Greg
+repository-code: "https://github.com/gregcaporaso/q2-confluence"
+license: BSD-3-Clause
