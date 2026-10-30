@@ -6,7 +6,7 @@
 It is designed to be a convenience layer over stock QIIME 2 [Actions](https://news.rachis.org/en/latest/glossary#term-action).
 The metagenome profiles can come from the companion plugin [mosh-sylph](https://github.com/gregcaporaso/mosh-sylph).
 
-See the [thermo-hec-tutorial](https://gregcaporaso.github.io/thermo-hec-tutorial/) ([source](https://github.com/gregcaporaso/thermo-hec-tutorial)) for documentation, including installation and usage instructions.
+See the [q2-confluence-tutorial](https://gregcaporaso.github.io/q2-confluence-tutorial/) ([source](https://github.com/gregcaporaso/q2-confluence-tutorial)) for documentation, including installation and usage instructions.
 Run `qiime confluence --help` after installation to learn what actions are available.
 
 Questions and bug reports should be directed to the [QIIME 2 Forum](https://forum.qiime2.org).
