@@ -3,8 +3,8 @@
 ⚠️ This plugin is in early testing (alpha release) phase. Interfaces will almost certainly change. Be skeptical of results - testing is still in progress.
 
 `q2-confluence` integrates 16S rRNA amplicon and metagenome taxonomic profiles of the same samples in the feature space of one GTDB release's genomes.
-It is designed to be a convenience layer over stock QIIME 2 [Actions](https://news.rachis.org/en/latest/glossary#term-action).
-The metagenome profiles can come from the companion plugin [mosh-sylph](https://github.com/gregcaporaso/mosh-sylph).
+It is designed to be a convenience layer over stock [QIIME 2](https://news.rachis.org/en/latest/glossary/#term-qiime-2) [Actions](https://news.rachis.org/en/latest/glossary/#term-action).
+The metagenome profiles can come from the companion [plugin](https://news.rachis.org/en/latest/glossary/#term-plugin) [mosh-sylph](https://github.com/gregcaporaso/mosh-sylph).
 
 See the [q2-confluence-tutorial](https://gregcaporaso.github.io/q2-confluence-tutorial/) ([source](https://github.com/gregcaporaso/q2-confluence-tutorial)) for documentation, including installation and usage instructions.
 Run `qiime confluence --help` after installation to learn what actions are available.
